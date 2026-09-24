@@ -6,8 +6,6 @@ produce for pickup and leave reviews; an admin manages users, markets and conten
 
 - `frontend/` - React 19 + Vite, React Router, Leaflet / OpenStreetMap
 - `backend/` - Node.js + Express 5, MongoDB (Mongoose), JWT authentication
-- `docs/` - database design, design diagrams, test data and credentials
-- `database/sample-data/` - sample documents (MongoDB Extended JSON)
 
 ## Installation
 
@@ -70,7 +68,6 @@ npm run build      # production build in frontend/dist
 | Farmer (pending approval) | pending.farmer@marketlink.test |
 | Customer | customer@marketlink.test |
 
-More test data and a test-case list: `docs/TEST_DATA_AND_CREDENTIALS.md`.
 
 ## Features
 - **Customer:** register and log in, browse markets and farmers on a map (with directions), search and filter
@@ -108,7 +105,6 @@ Send `Authorization: Bearer <token>` for protected routes.
 | `npm run db:init` | Creates every collection and index defined by the models |
 | `npm run seed` | Wipes this app's collections and loads the test data (refuses to run on the `test` database) |
 | `npm run db:images` | Copies the files in `backend/uploads/` (catalog photos) into MongoDB; safe to re-run |
-| `npm run db:export` | Writes this app's collections to `database/sample-data/*.json` |
 
 ## Assumptions
 - Payment is made in person at pickup; there is no payment gateway. Only pickup is supported (no delivery).
