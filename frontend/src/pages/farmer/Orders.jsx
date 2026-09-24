@@ -1,0 +1,118 @@
+import { useState } from 'react';
+import useFetch from '../../hooks/useFetch';
+import { ordersApi, errorMessage } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
+import { useToast } from '../../context/ToastContext';
+import ApprovalBanner from '../../components/ApprovalBanner';
+import { EmptyState, OrderStepper, PageHead, Pagination, StatusTag } from '../../components/Common';
+import { IconBasket } from '../../components/Icons';
+import { money } from '../../utils';
+
+const TABS = [['', 'All'], ['placed', 'New'], ['accepted', 'Accepted'], ['ready', 'Ready'], ['completed', 'Completed'], ['declined', 'Declined'], ['cancelled', 'Cancelled']];
+
+// Next actions the farmer may take, per current status.
+const ACTIONS = {
+  placed: [['accepted', 'Accept', ''], ['declined', 'Decline', 'btn-outline']],
+  accepted: [['ready', 'Mark ready for pickup', ''], ['declined', 'Decline', 'btn-outline']],
+  ready: [['completed', 'Mark completed', '']],
+};
+
+export default function Orders() {
+  const confirm = useConfirm();
+  const toast = useToast();
+  const [status, setStatus] = useState('');
+  const [date, setDate] = useState('');
+  const [page, setPage] = useState(1);
+  const [tick, setTick] = useState(0);
+  const [busy, setBusy] = useState('');
+  const { data, loading, error } = useFetch(() => ordersApi.list({ status, date, page, limit: 10 }), [status, date, page, tick]);
+  const orders = data?.orders || [];
+
+  const change = async (o, next, label) => {
+    if (next === 'declined' && !(await confirm({ title: 'Decline this order?', message: 'The reserved stock is released and the customer is notified.', confirmText: 'Decline order', danger: true }))) return;
+    setBusy(o._id);
+    try {
+      await ordersApi.setStatus(o._id, next);
+      toast(`Order #${o._id.slice(-6).toUpperCase()}: ${label.toLowerCase()}`);
+      setTick((t) => t + 1);
+    } catch (err) {
+      toast(errorMessage(err));
+    } finally {
+      setBusy('');
+    }
+  };
+
+  return (
+    <>
+      <PageHead kicker="Orders" title="Incoming orders" sub="Accept, prepare and hand over pre-orders. Customers are notified at every step.">
+        <label className="inline">
+          <span className="muted small">Pickup date</span>
+          <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(1); }} />
+        </label>
+        {date && (
+          <button className="btn btn-ghost btn-sm" onClick={() => setDate('')}>
+            Clear
+          </button>
+        )}
+      </PageHead>
+      <ApprovalBanner />
+      <div className="chip-row inline wrap-chips" role="tablist" aria-label="Order status">
+        {TABS.map(([v, label]) => (
+          <button key={v} role="tab" aria-selected={status === v} className={status === v ? 'active' : ''} onClick={() => { setStatus(v); setPage(1); }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {error && <p className="alert alert-error">{error}</p>}
+      {loading && !orders.length && <div className="stack">{[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 150, borderRadius: 22 }} />)}</div>}
+      {!loading && !orders.length && <EmptyState icon={IconBasket} title="No orders match" text="New pre-orders will appear here as customers reserve your produce." />}
+
+      <div className="order-list">
+        {orders.map((o) => (
+          <article className={`order-tile s-${o.status}`} key={o._id}>
+            <div className="ot-top">
+              <div>
+                <strong className="ot-farmer">{o.customer?.name}</strong>
+                <small className="muted">
+                  #{o._id.slice(-6).toUpperCase()}
+                  {o.customer?.phone && ` · ${o.customer.phone}`}
+                </small>
+              </div>
+              <StatusTag status={o.status} />
+            </div>
+            <OrderStepper status={o.status} compact />
+            <div className="ot-when">
+              <strong>
+                {o.pickupDate} · {o.pickupSlot.start}–{o.pickupSlot.end}
+              </strong>
+              {o.market?.name && <span className="muted"> at {o.market.name}</span>}
+            </div>
+            <ul className="ot-lines">
+              {o.items.map((i) => (
+                <li key={i.product}>
+                  <span>
+                    <b>{i.quantity}</b> {i.unit} × {i.name}
+                  </span>
+                  <span>{money(i.price * i.quantity)}</span>
+                </li>
+              ))}
+            </ul>
+            {o.notes && <p className="ot-note">“{o.notes}”</p>}
+            <div className="ot-foot">
+              <strong>Total {money(o.totalAmount)} · cash at pickup</strong>
+              <span className="po-actions">
+                {(ACTIONS[o.status] || []).map(([next, label, cls]) => (
+                  <button key={next} className={`btn btn-sm ${cls}`} disabled={busy === o._id} onClick={() => change(o, next, label)}>
+                    {label}
+                  </button>
+                ))}
+              </span>
+            </div>
+          </article>
+        ))}
+      </div>
+      {data && <Pagination page={data.page} pages={Math.ceil(data.total / 10)} onChange={setPage} />}
+    </>
+  );
+}

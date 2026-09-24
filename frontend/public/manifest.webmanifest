@@ -1,0 +1,10 @@
+{
+  "name": "MarketLink – Farm Fresh Just a Click Away",
+  "short_name": "MarketLink",
+  "description": "Discover local farmers markets, reserve fresh produce and pick it up in person.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f2e8",
+  "theme_color": "#123524",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

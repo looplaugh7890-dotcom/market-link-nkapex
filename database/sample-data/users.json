@@ -1,0 +1,150 @@
+[
+  {
+    "_id": {
+      "$oid": "6ab524cf7298838d59a4ba46"
+    },
+    "name": "Admin",
+    "email": "admin@marketlink.test",
+    "password": "$2b$10$ZyTwZOgBDtyuKZD8Mru6Uu0iHrX8V9gcFqa90.uGsIw8r8Y8OkmX.",
+    "phone": "0000000000",
+    "address": "HQ",
+    "role": "admin",
+    "isActive": true,
+    "favorites": {
+      "farmers": [],
+      "products": [],
+      "markets": []
+    },
+    "createdAt": {
+      "$date": "2026-09-24T13:25:35.380Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-24T13:25:35.380Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6ab524cf7298838d59a4ba47"
+    },
+    "name": "Cathy Customer",
+    "email": "customer@marketlink.test",
+    "password": "$2b$10$2dBAMg3xTDk0kEhaZCUt6uYsq7o7OPRK9tSdmDfI6dwcwmag.y/u6",
+    "phone": "1111111111",
+    "address": "5 Elm Street",
+    "role": "customer",
+    "isActive": true,
+    "favorites": {
+      "farmers": [],
+      "products": [],
+      "markets": []
+    },
+    "createdAt": {
+      "$date": "2026-09-24T13:25:35.754Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-24T13:25:35.754Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6ab524d07298838d59a4ba48"
+    },
+    "name": "Fred Farmer",
+    "email": "farmer@marketlink.test",
+    "password": "$2b$10$cHNm5V/XOYM9bNuCimw6YOPhVENcQL3CeeUq.Jg5cX7lPc.twiMZS",
+    "phone": "2222222222",
+    "address": "1 Farm Lane",
+    "role": "farmer",
+    "isActive": true,
+    "farmerProfile": {
+      "stallName": "Fred's Fresh Produce",
+      "contactPerson": "Fred Farmer",
+      "approvalStatus": "approved",
+      "markets": [
+        {
+          "$oid": "6ab524cf7298838d59a4ba45"
+        }
+      ],
+      "operatingDays": [
+        "saturday",
+        "sunday"
+      ],
+      "pickupWindows": [
+        {
+          "day": "saturday",
+          "start": "09:00",
+          "end": "13:00"
+        },
+        {
+          "day": "sunday",
+          "start": "09:00",
+          "end": "13:00"
+        }
+      ],
+      "cutoffHours": 12,
+      "location": {
+        "address": "Stall 7, Green Valley Market",
+        "latitude": 24.8608,
+        "longitude": 67.0012
+      },
+      "geo": {
+        "type": "Point",
+        "coordinates": [
+          67.0012,
+          24.8608
+        ]
+      },
+      "ratingAvg": 0,
+      "ratingCount": 0
+    },
+    "favorites": {
+      "farmers": [],
+      "products": [],
+      "markets": []
+    },
+    "createdAt": {
+      "$date": "2026-09-24T13:25:36.151Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-24T13:25:36.151Z"
+    },
+    "__v": 0
+  },
+  {
+    "_id": {
+      "$oid": "6ab524d07298838d59a4ba49"
+    },
+    "name": "Pat Pending",
+    "email": "pending.farmer@marketlink.test",
+    "password": "$2b$10$sFrl7ztv8u7ofvysLL2c1uoEnjTihkV6ohqGof6e5LDmRQ69EVhbG",
+    "phone": "3333333333",
+    "address": "2 Farm Lane",
+    "role": "farmer",
+    "isActive": true,
+    "farmerProfile": {
+      "stallName": "Pending Patch",
+      "contactPerson": "Pat Pending",
+      "approvalStatus": "pending",
+      "markets": [],
+      "operatingDays": [],
+      "cutoffHours": 12,
+      "ratingAvg": 0,
+      "ratingCount": 0,
+      "pickupWindows": []
+    },
+    "favorites": {
+      "farmers": [],
+      "products": [],
+      "markets": []
+    },
+    "createdAt": {
+      "$date": "2026-09-24T13:25:36.568Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-24T13:25:36.568Z"
+    },
+    "__v": 0
+  }
+]

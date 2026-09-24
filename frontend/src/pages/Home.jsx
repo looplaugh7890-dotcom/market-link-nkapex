@@ -1,0 +1,462 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import useFetch from '../hooks/useFetch';
+import { homeApi, productsApi, imageUrl } from '../services/api';
+import { useAuth, homeFor } from '../context/AuthContext';
+import { ProductCard, SkeletonGrid, Stars } from '../components/Common';
+import { DAYS, cap, categoryEmoji, daysText, farmerPath, marketPath, nextOpenLabel } from '../utils';
+import { IconBasket, IconCash, IconChevronLeft, IconChevronRight, IconClock, IconMap } from '../components/Icons';
+
+const STEPS = [
+  ['Discover', 'Find the farmers markets near you and see exactly who is selling this week.'],
+  ['Reserve', 'Pre-order against real weekly stock and choose the pickup slot that suits you.'],
+  ['Collect', 'Meet the grower, pick up your order and pay in person. No sold-out surprises.'],
+];
+
+const fmtTime = (t) => {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''}${h < 12 ? 'am' : 'pm'}`;
+};
+const hours = (m) => (m.openTime && m.closeTime ? `${fmtTime(m.openTime)} – ${fmtTime(m.closeTime)}` : '');
+const todayName = () => DAYS[(new Date().getDay() + 6) % 7];
+
+function Hero({ markets, stats }) {
+  const { user } = useAuth();
+  const today = todayName();
+  const live = [...markets].sort((a, b) => Number(b.operatingDays.includes(today)) - Number(a.operatingDays.includes(today))).slice(0, 3);
+  const openWeek = markets.filter((m) => nextOpenLabel(m.operatingDays)).length;
+  return (
+    <section className="hero">
+      <div className="hero-bg" aria-hidden />
+      <div className="hero-inner">
+        <div className="hero-copy">
+          <span className="kicker">Farmers markets, reimagined</span>
+          <h1>
+            Meet the hands that <em>grow</em> your food.
+          </h1>
+          <p>Reserve fresh produce straight from local growers, then pick it up at the market on the day. Real stock, real people, zero sold-out surprises.</p>
+          <div className="row-gap">
+            {user ? (
+              <Link className="btn btn-xl btn-tomato" to={homeFor(user)}>
+                Go to my dashboard
+              </Link>
+            ) : (
+              <>
+                <Link className="btn btn-xl btn-tomato" to="/products">
+                  Shop the harvest <span aria-hidden>→</span>
+                </Link>
+                <Link className="btn btn-xl btn-glass" to="/register?role=farmer">
+                  Sell as a grower
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        <aside className="hero-panel" aria-label="Market days">
+          <div className="panel-head">
+            <span className="live-dot" aria-hidden /> Market days
+          </div>
+          {live.map((m) => (
+            <Link key={m._id} to={marketPath(m)} className="panel-row">
+              <span>
+                <strong>{m.name}</strong>
+                <small>{hours(m) || daysText(m.operatingDays)}</small>
+              </span>
+              <span className={`pill-open ${m.operatingDays.includes(today) ? 'on' : ''}`}>{nextOpenLabel(m.operatingDays)}</span>
+            </Link>
+          ))}
+          <Link to="/markets" className="panel-all">
+            All {stats.markets} markets →
+          </Link>
+        </aside>
+      </div>
+
+      <ul className="hero-stats">
+        <li>
+          <strong>{stats.products}</strong> fresh products
+        </li>
+        <li>
+          <strong>{stats.farmers}</strong> local growers
+        </li>
+        <li>
+          <strong>{stats.markets}</strong> weekly markets
+        </li>
+        <li>
+          <strong>{openWeek}</strong> open in the next 7 days
+        </li>
+      </ul>
+    </section>
+  );
+}
+
+const FEATURES = [
+  [IconBasket, 'Straight from growers', 'Every item is listed by the farmer who grew it.'],
+  [IconClock, 'Your pickup slot', 'Reserve now and collect on market day.'],
+  [IconCash, 'Pay in person', 'No online payment, no delivery fees.'],
+  [IconMap, 'Markets near you', 'Find stalls on the map with directions.'],
+];
+
+function Features() {
+  return (
+    <section className="features" aria-label="Why MarketLink">
+      <div className="wrap features-grid">
+        {FEATURES.map(([Icon, t, d]) => (
+          <div className="feature" key={t}>
+            <span className="feature-ico">
+              <Icon />
+            </span>
+            <span>
+              <strong>{t}</strong>
+              <small>{d}</small>
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Marquee({ categories }) {
+  if (!categories.length) return null;
+  return (
+    <div className="marquee" aria-hidden>
+      <div className="marquee-track">
+        {[0, 1].map((k) => (
+          <div className="marquee-group" key={k}>
+            {[...categories, ...categories].map((c, i) => (
+              <span key={`${c._id}${i}`}>
+                {c.name} <i>✦</i>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WeekCalendar({ markets }) {
+  const today = todayName();
+  return (
+    <section className="block week">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">This week</span>
+            <h2>Where the market is open</h2>
+          </div>
+          <Link className="arrow-link" to="/markets">
+            Find a market near you →
+          </Link>
+        </div>
+        <div className="week-grid">
+          {DAYS.map((d) => {
+            const open = markets.filter((m) => m.operatingDays.includes(d));
+            return (
+              <div key={d} className={`week-day ${d === today ? 'today' : ''} ${open.length ? '' : 'closed'}`}>
+                <div className="wd-name">
+                  {cap(d.slice(0, 3))}
+                  {d === today && <em>Today</em>}
+                </div>
+                {open.length ? (
+                  open.map((m) => (
+                    <Link key={m._id} to={marketPath(m)} className="wd-market">
+                      <strong>{m.name}</strong>
+                      <small>{hours(m)}</small>
+                    </Link>
+                  ))
+                ) : (
+                  <span className="wd-none">No markets</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CategoryBento({ tiles: raw, loading }) {
+  const tiles = raw.slice(0, 9).map((c) => ({ ...c, img: imageUrl(c.image) }));
+  if (!tiles.length && !loading) return null;
+  return (
+    <section className="block">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">Shop by category</span>
+            <h2>Everything the season has to offer</h2>
+          </div>
+          <Link className="arrow-link" to="/products">
+            Browse all products →
+          </Link>
+        </div>
+        <div className="bento">
+          {!tiles.length && Array.from({ length: 9 }).map((_, i) => <div key={i} className={`bento-tile skeleton ${i === 0 ? 'big' : ''}`} aria-hidden />)}
+          {tiles.map((c, i) => (
+            <Link key={c._id} to={`/products?category=${c._id}`} className={`bento-tile ${i === 0 ? 'big' : ''}`} style={c.img ? { backgroundImage: `url(${c.img})` } : undefined}>
+              {!c.img && <span className="bento-emoji">{categoryEmoji(c.name)}</span>}
+              <span className="bento-label">
+                <strong>{c.name}</strong>
+                <small>
+                  {c.count} {c.count === 1 ? 'item' : 'items'}
+                </small>
+              </span>
+              <span className="bento-go" aria-hidden>
+                ↗
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Rail({ products }) {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ start: true, end: false, pct: 0 });
+
+  // Keeps the arrows honest: dimmed at either end, plus a thin progress line for how far you have scrolled.
+  const measure = () => {
+    const el = ref.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setPos({ start: el.scrollLeft <= 4, end: el.scrollLeft >= max - 4, pct: max > 0 ? Math.min(100, Math.round((el.scrollLeft / max) * 100)) : 100 });
+  };
+  useEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [products.length]);
+
+  const scroll = (d) => {
+    const el = ref.current;
+    if (!el) return;
+    const card = el.querySelector('.rail-item');
+    const step = card ? (card.getBoundingClientRect().width + 22) * Math.max(1, Math.floor(el.clientWidth / (card.getBoundingClientRect().width + 22)) - 0) : 640;
+    el.scrollBy({ left: d * step, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="block rail-block">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">Just in</span>
+            <h2>Fresh this week</h2>
+          </div>
+          <div className="rail-nav">
+            <button aria-label="Previous products" onClick={() => scroll(-1)} disabled={pos.start}>
+              <IconChevronLeft width={24} height={24} strokeWidth={2.2} />
+            </button>
+            <button aria-label="Next products" onClick={() => scroll(1)} disabled={pos.end}>
+              <IconChevronRight width={24} height={24} strokeWidth={2.2} />
+            </button>
+          </div>
+        </div>
+        <div className="rail-progress" aria-hidden>
+          <span style={{ width: `${Math.max(8, pos.pct)}%` }} />
+        </div>
+      </div>
+      <div className="rail" ref={ref} onScroll={measure}>
+        {products.map((p) => (
+          <div className="rail-item" key={p._id}>
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Story() {
+  return (
+    <section className="story">
+      <div className="story-photo" aria-hidden />
+      <div className="story-copy">
+        <span className="kicker">How it works</span>
+        <h2>From the soil to your bag, in three steps.</h2>
+        <ol>
+          {STEPS.map(([t, d], i) => (
+            <li key={t}>
+              <span className="step-no">0{i + 1}</span>
+              <span>
+                <strong>{t}</strong>
+                <span>{d}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        <p className="story-note">Pickup only · Pay in person · No delivery fees</p>
+      </div>
+    </section>
+  );
+}
+
+function Growers({ growers, ready }) {
+  const list = growers.map((f) => ({ f, count: f.productCount, img: imageUrl(f.image) }));
+  if (!list.length) return null;
+  return (
+    <section className="block">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">Meet the growers</span>
+            <h2>The people behind the stalls</h2>
+          </div>
+        </div>
+        <div className="growers">
+          {list.map(({ f, count, img }) => (
+            <Link key={f._id} to={farmerPath(f)} className="grower">
+              <span className="grower-img" style={img ? { backgroundImage: `url(${img})` } : undefined}>
+                {!img && <span>{f.farmerProfile.stallName?.[0]}</span>}
+                <span className="grower-days">{daysText(f.farmerProfile.operatingDays)}</span>
+              </span>
+              <span className="grower-body">
+                <strong>{f.farmerProfile.stallName}</strong>
+                <span className="muted small">{f.farmerProfile.markets?.map((m) => m.name).join(' · ') || 'Local grower'}</span>
+                <span className="grower-meta">
+                  <Stars value={f.farmerProfile.ratingAvg} count={f.farmerProfile.ratingCount} />
+                  <span>{ready ? `${count} product${count === 1 ? '' : 's'}` : ' '}</span>
+                </span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Harvest({ categories }) {
+  const [tab, setTab] = useState('');
+  const { data, loading } = useFetch(() => productsApi.list({ category: tab, limit: 10, sort: 'rating' }), [tab]);
+  const products = data?.products || [];
+  return (
+    <section className="block">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">The full harvest</span>
+            <h2>Picked for you</h2>
+          </div>
+          <div className="pills" role="tablist">
+            <button role="tab" aria-selected={tab === ''} className={tab === '' ? 'active' : ''} onClick={() => setTab('')}>
+              All
+            </button>
+            {categories.map((c) => (
+              <button key={c._id} role="tab" aria-selected={tab === c._id} className={tab === c._id ? 'active' : ''} onClick={() => setTab(c._id)}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        {loading ? (
+          <SkeletonGrid count={5} className="grid grid-5" />
+        ) : products.length ? (
+          <div className="grid grid-5">
+            {products.map((p) => (
+              <ProductCard key={p._id} product={p} />
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Nothing in stock in this category right now.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Markets({ markets }) {
+  if (!markets.length) return null;
+  return (
+    <section className="block markets-block">
+      <div className="wrap">
+        <div className="block-head">
+          <div>
+            <span className="kicker dark">Our markets</span>
+            <h2>Pick a market, pick a day</h2>
+          </div>
+          <Link className="arrow-link" to="/markets">
+            View on the map →
+          </Link>
+        </div>
+        <ul className="market-rows">
+          {markets.map((m, i) => (
+            <li key={m._id}>
+              <Link to={marketPath(m)}>
+                <span className="mr-no">0{i + 1}</span>
+                <span className="mr-name">{m.name}</span>
+                <span className="mr-info">
+                  <span>{daysText(m.operatingDays)}</span>
+                  <span>{hours(m)}</span>
+                </span>
+                <span className="mr-next">{nextOpenLabel(m.operatingDays)}</span>
+                <span className="mr-go" aria-hidden>
+                  ↗
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Duo() {
+  const { user } = useAuth();
+  return (
+    <section className="duo">
+      <div className="duo-a">
+        <span className="kicker">For shoppers</span>
+        <h2>Eat what the season grows.</h2>
+        <p>Save favourites, get restock alerts and track every pre-order.</p>
+        <Link className="btn btn-xl btn-tomato" to={user ? '/products' : '/register'}>
+          {user ? 'Start shopping' : 'Create free account'} <span aria-hidden>→</span>
+        </Link>
+      </div>
+      <div className="duo-b">
+        <span className="kicker">For growers</span>
+        <h2>Sell your harvest, keep your margin.</h2>
+        <p>Publish weekly stock, take pre-orders and meet customers face to face.</p>
+        <Link className="btn btn-xl btn-glass" to={user?.role === 'farmer' ? '/farmer/products' : '/register?role=farmer'}>
+          {user?.role === 'farmer' ? 'Manage stock' : 'Become a seller'} <span aria-hidden>→</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+export default function Home() {
+  const home = useFetch(() => homeApi.get(), []);
+  const d = home.data;
+  const categories = d?.categories || [];
+  const marketList = d?.markets || [];
+  const stats = d?.stats || { markets: 0, farmers: 0, products: 0 };
+
+  return (
+    <div className="home">
+      {home.error && (
+        <p className="alert alert-error home-error" role="alert">
+          We could not load the latest harvest. Check your connection and <button onClick={() => window.location.reload()}>try again</button>.
+        </p>
+      )}
+      <Hero markets={marketList} stats={stats} />
+      <Marquee categories={categories} />
+      <Features />
+      <CategoryBento tiles={d?.categoryTiles || []} loading={home.loading} />
+      {d?.newest?.length > 0 && <Rail products={d.newest} />}
+      <Story />
+      <WeekCalendar markets={marketList} />
+      <Growers growers={d?.growers || []} ready={!home.loading} />
+      <Harvest categories={categories} />
+      <Markets markets={marketList.slice(0, 5)} />
+      <Duo />
+    </div>
+  );
+}

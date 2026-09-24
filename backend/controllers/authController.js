@@ -1,0 +1,89 @@
+const User = require('../models/User');
+const { AppError, requireFields, isEmail, signToken, cleanString } = require('../utils/helpers');
+
+// Checks shared by customer and farmer sign-up: valid e-mail and a password of at least 6 characters.
+const validateCommon = (body) => {
+  if (!isEmail(body.email)) throw new AppError('Invalid e-mail address', 400);
+  if (typeof body.password !== 'string' || body.password.length < 6) {
+    throw new AppError('Password must be at least 6 characters', 400);
+  }
+};
+
+const sendAuth = (res, user, status = 200) =>
+  res.status(status).json({ success: true, token: signToken(user), user });
+
+// Customer registration: name, contact number, e-mail and address are mandatory.
+const registerCustomer = async (req, res) => {
+  const body = req.body;
+  requireFields(body, ['name', 'email', 'phone', 'address', 'password']);
+  validateCommon(body);
+
+  const user = await User.create({
+    name: cleanString(body.name),
+    email: body.email,
+    phone: cleanString(body.phone),
+    address: cleanString(body.address),
+    password: body.password,
+    role: 'customer',
+  });
+  sendAuth(res, user, 201);
+};
+
+// Farmer registration: stall name, contact person, number, e-mail, address. Starts as "pending".
+const registerFarmer = async (req, res) => {
+  const body = req.body;
+  requireFields(body, ['stallName', 'contactPerson', 'email', 'phone', 'address', 'password']);
+  validateCommon(body);
+
+  const user = await User.create({
+    name: cleanString(body.contactPerson),
+    email: body.email,
+    phone: cleanString(body.phone),
+    address: cleanString(body.address),
+    password: body.password,
+    role: 'farmer',
+    farmerProfile: {
+      stallName: cleanString(body.stallName),
+      contactPerson: cleanString(body.contactPerson),
+      approvalStatus: 'pending',
+    },
+  });
+  sendAuth(res, user, 201);
+};
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  if (typeof email !== 'string' || typeof password !== 'string') {
+    throw new AppError('E-mail and password are required', 400);
+  }
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+  if (!user || !(await user.matchPassword(password))) throw new AppError('Invalid credentials', 401);
+  if (!user.isActive) throw new AppError('Account is deactivated. Contact support.', 403);
+  user.password = undefined;
+  sendAuth(res, user);
+};
+
+const getMe = (req, res) => res.json({ success: true, user: req.user });
+
+const updateMe = async (req, res) => {
+  const { name, phone, address } = req.body;
+  if (cleanString(name)) req.user.name = cleanString(name);
+  if (cleanString(phone)) req.user.phone = cleanString(phone);
+  if (cleanString(address)) req.user.address = cleanString(address);
+  await req.user.save();
+  res.json({ success: true, user: req.user });
+};
+
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || newPassword.length < 6) {
+    throw new AppError('Provide current password and a new password (min 6 chars)', 400);
+  }
+  const user = await User.findById(req.user._id).select('+password');
+  if (!(await user.matchPassword(currentPassword))) throw new AppError('Current password is incorrect', 401);
+  user.password = newPassword;
+  await user.save();
+  res.json({ success: true, message: 'Password updated' });
+};
+
+module.exports = { registerCustomer, registerFarmer, login, getMe, updateMe, changePassword };

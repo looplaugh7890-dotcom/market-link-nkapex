@@ -1,0 +1,33 @@
+[
+  {
+    "_id": {
+      "$oid": "6ab524cf7298838d59a4ba45"
+    },
+    "name": "Green Valley Market",
+    "address": "12 Orchard Road, Green Valley",
+    "latitude": 24.8607,
+    "longitude": 67.0011,
+    "geo": {
+      "type": "Point",
+      "coordinates": [
+        67.0011,
+        24.8607
+      ]
+    },
+    "mapProvider": "openstreetmap",
+    "operatingDays": [
+      "saturday",
+      "sunday"
+    ],
+    "openTime": "08:00",
+    "closeTime": "14:00",
+    "isActive": true,
+    "createdAt": {
+      "$date": "2026-09-24T13:25:35.076Z"
+    },
+    "updatedAt": {
+      "$date": "2026-09-24T13:25:35.076Z"
+    },
+    "__v": 0
+  }
+]
