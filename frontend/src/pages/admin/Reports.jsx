@@ -27,7 +27,7 @@ const rowsFor = (r) => {
   if (r.reportType === 'top_products') return { head: ['Product', 'Units sold', 'Revenue'], rows: d.map((p) => [p.product, `${p.units} ${p.unit || ''}`.trim(), p.revenue]) };
   return {
     head: ['Metric', 'Value'],
-    rows: [['Total orders', d.totalOrders], ['Completed orders', d.completedOrders], ['Revenue', d.revenue], ...d.revenueByMarket.map((m) => [`Revenue - ${m.market || 'Unspecified'}`, m.revenue]), ...d.mostActiveFarmers.map((f) => [`Orders - ${f.stallName || 'Removed farmer'}`, f.orders])],
+    rows: [['Total orders', d.totalOrders], ['Completed orders', d.completedOrders], ['Revenue', d.revenue], ...d.revenueByMarket.map((m) => [`Revenue - ${m.market || 'Unspecified'}`, m.revenue]), ...d.mostActiveFarmers.map((mostActiveFarmer) => [`Orders - ${mostActiveFarmer.stallName || 'Removed farmer'}`, mostActiveFarmer.orders])],
   };
 };
 const download = (r) => {
@@ -93,10 +93,10 @@ export default function Reports() {
       const res = await adminApi.generateReport(type);
       setFresh(res.data.report);
       setShownId(res.data.report._id);
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
       toast(`${LABEL[type]} generated`);
-    } catch (err) {
-      toast(errorMessage(err));
+    } catch (error) {
+      toast(errorMessage(error));
     } finally {
       setBusy('');
     }

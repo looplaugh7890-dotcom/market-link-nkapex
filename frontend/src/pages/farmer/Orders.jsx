@@ -34,7 +34,7 @@ export default function Orders() {
     try {
       await ordersApi.setStatus(o._id, next);
       toast(`Order #${o._id.slice(-6).toUpperCase()}: ${label.toLowerCase()}`);
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       toast(errorMessage(err));
     } finally {
@@ -47,7 +47,7 @@ export default function Orders() {
       <PageHead kicker="Orders" title="Incoming orders" sub="Accept, prepare and hand over pre-orders. Customers are notified at every step.">
         <label className="inline">
           <span className="muted small">Pickup date</span>
-          <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(1); }} />
+          <input type="date" value={date} onChange={(event) => { setDate(event.target.value); setPage(1); }} />
         </label>
         {date && (
           <button className="btn btn-ghost btn-sm" onClick={() => setDate('')}>
@@ -69,41 +69,41 @@ export default function Orders() {
       {!loading && !orders.length && <EmptyState icon={IconBasket} title="No orders match" text="New pre-orders will appear here as customers reserve your produce." />}
 
       <div className="order-list">
-        {orders.map((o) => (
-          <article className={`order-tile s-${o.status}`} key={o._id}>
+        {orders.map((order) => (
+          <article className={`order-tile s-${order.status}`} key={order._id}>
             <div className="ot-top">
               <div>
-                <strong className="ot-farmer">{o.customer?.name}</strong>
+                <strong className="ot-farmer">{order.customer?.name}</strong>
                 <small className="muted">
-                  #{o._id.slice(-6).toUpperCase()}
-                  {o.customer?.phone && ` · ${o.customer.phone}`}
+                  #{order._id.slice(-6).toUpperCase()}
+                  {order.customer?.phone && ` · ${order.customer.phone}`}
                 </small>
               </div>
-              <StatusTag status={o.status} />
+              <StatusTag status={order.status} />
             </div>
-            <OrderStepper status={o.status} compact />
+            <OrderStepper status={order.status} compact />
             <div className="ot-when">
               <strong>
-                {o.pickupDate} · {o.pickupSlot.start}–{o.pickupSlot.end}
+                {order.pickupDate} · {order.pickupSlot.start}–{order.pickupSlot.end}
               </strong>
-              {o.market?.name && <span className="muted"> at {o.market.name}</span>}
+              {order.market?.name && <span className="muted"> at {order.market.name}</span>}
             </div>
             <ul className="ot-lines">
-              {o.items.map((i) => (
-                <li key={i.product}>
+              {order.items.map((item) => (
+                <li key={item.product}>
                   <span>
-                    <b>{i.quantity}</b> {i.unit} × {i.name}
+                    <b>{item.quantity}</b> {item.unit} × {item.name}
                   </span>
-                  <span>{money(i.price * i.quantity)}</span>
+                  <span>{money(item.price * item.quantity)}</span>
                 </li>
               ))}
             </ul>
-            {o.notes && <p className="ot-note">“{o.notes}”</p>}
+            {order.notes && <p className="ot-note">“{order.notes}”</p>}
             <div className="ot-foot">
-              <strong>Total {money(o.totalAmount)} · cash at pickup</strong>
+              <strong>Total {money(order.totalAmount)} · cash at pickup</strong>
               <span className="po-actions">
-                {(ACTIONS[o.status] || []).map(([next, label, cls]) => (
-                  <button key={next} className={`btn btn-sm ${cls}`} disabled={busy === o._id} onClick={() => change(o, next, label)}>
+                {(ACTIONS[order.status] || []).map(([next, label, cls]) => (
+                  <button key={next} className={`btn btn-sm ${cls}`} disabled={busy === order._id} onClick={() => change(order, next, label)}>
                     {label}
                   </button>
                 ))}

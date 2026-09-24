@@ -18,10 +18,10 @@ const connectDB = async ({ exitOnFail = true } = {}) => {
     };
     const conn = await mongoose.connect(process.env.MONGO_URI, options);
     console.log(`MongoDB connected: ${conn.connection.host} (database: ${conn.connection.name})`);
-  } catch (err) {
-    console.error(`MongoDB connection error: ${err.message}`);
+  } catch (error) {
+    console.error(`MongoDB connection error: ${error.message}`);
     if (exitOnFail) process.exit(1);
-    throw err;
+    throw error;
   }
 };
 

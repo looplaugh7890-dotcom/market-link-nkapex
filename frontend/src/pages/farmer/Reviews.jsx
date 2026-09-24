@@ -10,8 +10,8 @@ function Reply({ review, onDone }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
 
-  const save = async (e) => {
-    e.preventDefault();
+  const save = async (event) => {
+    event.preventDefault();
     setError('');
     try {
       await reviewsApi.reply(review._id, text);
@@ -38,7 +38,7 @@ function Reply({ review, onDone }) {
   }
   return (
     <form onSubmit={save}>
-      <textarea rows={2} required maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} aria-label="Your reply" />
+      <textarea rows={2} required maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} aria-label="Your reply" />
       {error && <p className="alert alert-error">{error}</p>}
       <div className="row-gap">
         <button className="btn btn-sm">Post reply</button>
@@ -54,7 +54,7 @@ export default function Reviews() {
   const [tick, setTick] = useState(0);
   const { data, loading, error } = useFetch(() => reviewsApi.mine(), [tick]);
   const reviews = data?.reviews || [];
-  const avg = reviews.length ? reviews.reduce((n, r) => n + r.rating, 0) / reviews.length : 0;
+  const avg = reviews.length ? reviews.reduce((total, r) => total + r.rating, 0) / reviews.length : 0;
   const dist = [5, 4, 3, 2, 1].map((n) => ({ n, c: reviews.filter((r) => r.rating === n).length }));
   const unanswered = reviews.filter((r) => !r.reply?.text).length;
 
@@ -101,7 +101,7 @@ export default function Reviews() {
               </div>
               {r.comment && <p>{r.comment}</p>}
               <small className="muted">{timeAgo(r.createdAt)}</small>
-              <Reply review={r} onDone={() => setTick((t) => t + 1)} />
+              <Reply review={r} onDone={() => setTick((previousTick) => previousTick + 1)} />
             </div>
           </article>
         ))}

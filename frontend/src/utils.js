@@ -1,7 +1,7 @@
 export const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 export const cap = (s = '') => s.charAt(0).toUpperCase() + s.slice(1);
 export const money = (n) => `$${Number(n || 0).toFixed(2)}`;
-export const daysText = (days = []) => (days.length ? days.map((d) => cap(d.slice(0, 3))).join(', ') : 'Not set');
+export const daysText = (days = []) => (days.length ? days.map((day) => cap(day.slice(0, 3))).join(', ') : 'Not set');
 
 export const directionsLinks = (lat, lng) => ({
   osm: `https://www.openstreetmap.org/directions?to=${lat}%2C${lng}`,
@@ -25,7 +25,7 @@ export const phClass = (name = '') => {
 // "Today", "Tomorrow" or "Sat 26 Sep": the next day a market/stall is open.
 const DAY_INDEX = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
 export const nextOpenLabel = (days = []) => {
-  const open = days.map((d) => DAY_INDEX[d]).filter((n) => n !== undefined);
+  const open = days.map((day) => DAY_INDEX[day]).filter((n) => n !== undefined);
   if (!open.length) return '';
   for (let i = 0; i < 7; i++) {
     const d = new Date();

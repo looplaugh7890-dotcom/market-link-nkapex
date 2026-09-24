@@ -11,10 +11,10 @@ const FIELDS = ['search', 'category', 'minPrice', 'maxPrice', 'market', 'day', '
 // Right-hand slide-in panel with every filter. Applies on submit so the grid does not reload on every keystroke.
 function FilterDrawer({ f, markets, onApply, onReset, onClose }) {
   const [v, setV] = useState({ search: f.search, market: f.market, day: f.day, minPrice: f.minPrice, maxPrice: f.maxPrice });
-  const set = (k) => (e) => setV({ ...v, [k]: e.target.value });
+  const set = (k) => (event) => setV({ ...v, [k]: event.target.value });
 
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (event) => event.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
     return () => {
@@ -26,7 +26,7 @@ function FilterDrawer({ f, markets, onApply, onReset, onClose }) {
   const PRICE = [['Under $2', '', '2'], ['$2 – $5', '2', '5'], ['$5 – $10', '5', '10'], ['Over $10', '10', '']];
 
   return (
-    <div className="fd-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fd-back" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <aside className="filter-drawer" role="dialog" aria-modal="true" aria-label="Filters">
         <header className="fd-head">
           <h2>Filters</h2>
@@ -37,8 +37,8 @@ function FilterDrawer({ f, markets, onApply, onReset, onClose }) {
         <form
           id="filter-form"
           className="fd-body"
-          onSubmit={(e) => {
-            e.preventDefault();
+          onSubmit={(event) => {
+            event.preventDefault();
             onApply(v);
           }}
         >
@@ -50,9 +50,9 @@ function FilterDrawer({ f, markets, onApply, onReset, onClose }) {
             Market
             <select value={v.market} onChange={set('market')}>
               <option value="">All markets</option>
-              {markets.map((m) => (
-                <option key={m._id} value={m._id}>
-                  {m.name}
+              {markets.map((market) => (
+                <option key={market._id} value={market._id}>
+                  {market.name}
                 </option>
               ))}
             </select>
@@ -63,9 +63,9 @@ function FilterDrawer({ f, markets, onApply, onReset, onClose }) {
               <button type="button" className={!v.day ? 'active' : ''} onClick={() => setV({ ...v, day: '' })}>
                 Any
               </button>
-              {DAYS.map((d) => (
-                <button type="button" key={d} className={v.day === d ? 'active' : ''} onClick={() => setV({ ...v, day: d })}>
-                  {cap(d.slice(0, 3))}
+              {DAYS.map((day) => (
+                <button type="button" key={day} className={v.day === day ? 'active' : ''} onClick={() => setV({ ...v, day: day })}>
+                  {cap(day.slice(0, 3))}
                 </button>
               ))}
             </div>
@@ -153,7 +153,7 @@ export default function Products() {
         </button>
         <label className="inline sort-inline">
           <span className="muted small">Sort</span>
-          <select value={f.sort} onChange={(e) => setParam('sort', e.target.value)} aria-label="Sort products">
+          <select value={f.sort} onChange={(event) => setParam('sort', event.target.value)} aria-label="Sort products">
             <option value="">Newest</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
@@ -223,8 +223,8 @@ export default function Products() {
       {!loading && products.length > 0 && (
         <>
           <div className="grid grid-products">
-            {products.map((p) => (
-              <ProductCard key={p._id} product={p} />
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
           <Pagination page={data.page} pages={data.pages} onChange={goPage} />

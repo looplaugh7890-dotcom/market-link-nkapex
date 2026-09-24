@@ -20,25 +20,25 @@ export function ReviewList({ params }) {
   if (!data.reviews.length) return <p className="muted">No reviews yet.</p>;
   return (
     <div className="stack">
-      {data.reviews.map((r) => (
-        <article className="review-card" key={r._id}>
+      {data.reviews.map((review) => (
+        <article className="review-card" key={review._id}>
           <span className="who-avatar" aria-hidden>
-            {r.customer?.name?.[0] || 'C'}
+            {review.customer?.name?.[0] || 'C'}
           </span>
           <div className="rc-body">
             <div className="between">
               <strong>
-                {r.customer?.name || 'Customer'} <span className="verified">✓ Verified pickup</span>
+                {review.customer?.name || 'Customer'} <span className="verified">✓ Verified pickup</span>
               </strong>
-              <Stars value={r.rating} />
+              <Stars value={review.rating} />
             </div>
-            {r.comment && <p>{r.comment}</p>}
-            {r.reply?.text && (
+            {review.comment && <p>{review.comment}</p>}
+            {review.reply?.text && (
               <p className="reply">
-                <strong>Farmer reply:</strong> {r.reply.text}
+                <strong>Farmer reply:</strong> {review.reply.text}
               </p>
             )}
-            <small className="muted">{timeAgo(r.createdAt)}</small>
+            <small className="muted">{timeAgo(review.createdAt)}</small>
           </div>
         </article>
       ))}
@@ -123,7 +123,7 @@ function Gallery({ src, alt, badge, letter }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    const onKey = (event) => event.key === 'Escape' && setOpen(false);
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
@@ -133,14 +133,14 @@ function Gallery({ src, alt, badge, letter }) {
         className={`pdp-main ${src ? 'has-img' : 'noimg'}`}
         onMouseEnter={() => setZoom(true)}
         onMouseLeave={() => setZoom(false)}
-        onMouseMove={(e) => {
-          const r = e.currentTarget.getBoundingClientRect();
-          setOrigin(`${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`);
+        onMouseMove={(event) => {
+          const r = event.currentTarget.getBoundingClientRect();
+          setOrigin(`${((event.clientX - r.left) / r.width) * 100}% ${((event.clientY - r.top) / r.height) * 100}%`);
         }}
         onClick={() => src && setOpen(true)}
         role={src ? 'button' : undefined}
         tabIndex={src ? 0 : undefined}
-        onKeyDown={(e) => src && e.key === 'Enter' && setOpen(true)}
+        onKeyDown={(event) => src && event.key === 'Enter' && setOpen(true)}
         aria-label={src ? 'Open larger photo' : undefined}
       >
         {src ? <img src={src} alt={alt} style={{ transformOrigin: origin }} className={zoom ? 'zoomed' : ''} /> : <span className="ph-letter">{letter}</span>}
@@ -219,7 +219,7 @@ export default function ProductDetail() {
   useEffect(() => {
     if (!p) return undefined;
     const ids = ['overview', 'details', 'pickup', 'grower', 'reviews'];
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => e.isIntersecting && setSection(e.target.id)), { rootMargin: '-35% 0px -60% 0px' });
+    const io = new IntersectionObserver((entries) => entries.forEach((event) => event.isIntersecting && setSection(event.target.id)), { rootMargin: '-35% 0px -60% 0px' });
     ids.forEach((i) => document.getElementById(i) && io.observe(document.getElementById(i)));
     return () => io.disconnect();
   }, [p?._id, farmerRes.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -264,7 +264,7 @@ export default function ProductDetail() {
   const inStock = p.status === 'available';
   const left = p.quantityAvailable;
   const isCustomer = user?.role === 'customer';
-  const inCart = cart.items.find((i) => i.product._id === p._id)?.quantity || 0;
+  const inCart = cart.items.find((item) => item.product._id === p._id)?.quantity || 0;
   const maxQty = Math.max(1, left - inCart);
   const isNew = Date.now() - new Date(p.createdAt).getTime() < 7 * 24 * 3600 * 1000;
   const total = p.price * qty;
@@ -310,7 +310,7 @@ export default function ProductDetail() {
     toast('We will alert you when it is back in stock');
   };
 
-  const mapPoints = markets.map((m) => ({ id: m._id, lat: m.latitude, lng: m.longitude, title: m.name, subtitle: m.address }));
+  const mapPoints = markets.map((market) => ({ id: market._id, lat: market.latitude, lng: market.longitude, title: market.name, subtitle: market.address }));
 
   return (
     <>
@@ -467,18 +467,18 @@ export default function ProductDetail() {
             <div className="buybox" ref={buyRef}>
               <div className="qty-row">
                 <div className="qty-stepper" role="group" aria-label="Quantity">
-                <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Decrease quantity">
+                <button type="button" onClick={() => setQty((previousQty) => Math.max(1, previousQty - 1))} disabled={qty <= 1} aria-label="Decrease quantity">
                   −
                 </button>
-                <input type="number" min="1" max={maxQty} value={qty} onChange={(e) => setQty(Math.max(1, Math.min(Number(e.target.value) || 1, maxQty)))} aria-label="Quantity" />
-                <button type="button" onClick={() => setQty((q) => Math.min(maxQty, q + 1))} disabled={qty >= maxQty} aria-label="Increase quantity">
+                <input type="number" min="1" max={maxQty} value={qty} onChange={(event) => setQty(Math.max(1, Math.min(Number(event.target.value) || 1, maxQty)))} aria-label="Quantity" />
+                <button type="button" onClick={() => setQty((previousQty) => Math.min(maxQty, previousQty + 1))} disabled={qty >= maxQty} aria-label="Increase quantity">
                   +
                 </button>
                 </div>
                 <div className="qty-presets" aria-label="Quick quantities">
-                  {presets.map((n) => (
-                    <button key={n} type="button" className={qty === n ? 'on' : ''} onClick={() => setQty(n)}>
-                      {n} {p.unit}
+                  {presets.map((preset) => (
+                    <button key={preset} type="button" className={qty === preset ? 'on' : ''} onClick={() => setQty(preset)}>
+                      {preset} {p.unit}
                     </button>
                   ))}
                 </div>
@@ -639,7 +639,7 @@ export default function ProductDetail() {
           </div>
           <div>
             <dt>Pickup windows</dt>
-            <dd>{fp?.pickupWindows?.length ? fp.pickupWindows.map((w) => `${cap(w.day.slice(0, 3))} ${w.start}–${w.end}`).join(' · ') : 'Flexible'}</dd>
+            <dd>{fp?.pickupWindows?.length ? fp.pickupWindows.map((pickupWindow) => `${cap(pickupWindow.day.slice(0, 3))} ${pickupWindow.start}–${pickupWindow.end}`).join(' · ') : 'Flexible'}</dd>
           </div>
           <div>
             <dt>Order cut-off</dt>
@@ -674,18 +674,18 @@ export default function ProductDetail() {
           <h2>Where to pick it up</h2>
           <div className="pdp-where">
             <ul className="pdp-markets">
-              {markets.map((m) => {
-                const dir = directionsLinks(m.latitude, m.longitude);
+              {markets.map((market) => {
+                const dir = directionsLinks(market.latitude, market.longitude);
                 return (
-                  <li key={m._id}>
+                  <li key={market._id}>
                     <span className="pp-ico">
                       <IconMap />
                     </span>
                     <div>
-                      <Link to={marketPath(m)}>
-                        <strong>{m.name}</strong>
+                      <Link to={marketPath(market)}>
+                        <strong>{market.name}</strong>
                       </Link>
-                      <small className="muted">{m.address}</small>
+                      <small className="muted">{market.address}</small>
                       <span className="pdp-dir">
                         <a href={dir.osm} target="_blank" rel="noreferrer">
                           OpenStreetMap
@@ -728,7 +728,7 @@ export default function ProductDetail() {
                 <span>market{markets.length === 1 ? '' : 's'}</span>
               </li>
               <li>
-                <b>{fp?.operatingDays?.length ? fp.operatingDays.map((d) => cap(d.slice(0, 3))).join(', ') : '–'}</b>
+                <b>{fp?.operatingDays?.length ? fp.operatingDays.map((operatingDay) => cap(operatingDay.slice(0, 3))).join(', ') : '–'}</b>
                 <span>open days</span>
               </li>
             </ul>

@@ -25,13 +25,13 @@ function MarketForm({ id, initial, onSaved, onCancel }) {
   const [f, setF] = useState(initial);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const set = (k) => (event) => setF({ ...f, [k]: event.target.value });
   const lat = parseFloat(f.latitude);
   const lng = parseFloat(f.longitude);
   const hasPin = Number.isFinite(lat) && Number.isFinite(lng);
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
     if (!hasPin) return setError('Set the location by clicking the map or entering coordinates');
     setBusy(true);
@@ -72,9 +72,9 @@ function MarketForm({ id, initial, onSaved, onCancel }) {
       <fieldset>
         <legend>Operating days</legend>
         <div className="row-gap">
-          {DAYS.map((d) => (
-            <label className="check" key={d}>
-              <input type="checkbox" checked={f.operatingDays.includes(d)} onChange={() => setF({ ...f, operatingDays: f.operatingDays.includes(d) ? f.operatingDays.filter((x) => x !== d) : [...f.operatingDays, d] })} /> {cap(d)}
+          {DAYS.map((day) => (
+            <label className="check" key={day}>
+              <input type="checkbox" checked={f.operatingDays.includes(day)} onChange={() => setF({ ...f, operatingDays: f.operatingDays.includes(day) ? f.operatingDays.filter((operatingDay) => operatingDay !== day) : [...f.operatingDays, day] })} /> {cap(day)}
             </label>
           ))}
         </div>
@@ -101,7 +101,7 @@ function MarketForm({ id, initial, onSaved, onCancel }) {
         <input type="url" value={f.mapLink} onChange={set('mapLink')} placeholder="https://..." />
       </label>
       <p className="muted small">Click the map to place the market pin.</p>
-      <MapView height={260} points={hasPin ? [{ id: 'pin', lat, lng, title: f.name || 'Market', subtitle: f.address }] : []} onPick={(la, lo) => setF((c) => ({ ...c, latitude: la.toFixed(6), longitude: lo.toFixed(6) }))} />
+      <MapView height={260} points={hasPin ? [{ id: 'pin', lat, lng, title: f.name || 'Market', subtitle: f.address }] : []} onPick={(la, lo) => setF((previousF) => ({ ...previousF, latitude: la.toFixed(6), longitude: lo.toFixed(6) }))} />
       {error && <p className="alert alert-error">{error}</p>}
       <div className="row-gap">
         <button className="btn" disabled={busy}>
@@ -129,7 +129,7 @@ export default function Markets() {
     try {
       await marketsApi.remove(m._id);
       toast(`${m.name} removed`);
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       setMsg({ type: 'error', text: errorMessage(err) });
     }
@@ -159,27 +159,27 @@ export default function Markets() {
           onSaved={() => {
             setEditing(null);
             toast('Market saved');
-            setTick((t) => t + 1);
+            setTick((previousTick) => previousTick + 1);
           }}
         />
       )}
       <Status loading={loading} error={error} empty={!markets.length} emptyText="No markets yet." />
       <div className="stack">
-        {markets.map((m) => (
-          <div className="ad-card prod-row" key={m._id}>
+        {markets.map((market) => (
+          <div className="ad-card prod-row" key={market._id}>
             <div className="cart-info">
-              <strong>{m.name}</strong>
-              <div className="muted small">{m.address}</div>
+              <strong>{market.name}</strong>
+              <div className="muted small">{market.address}</div>
               <div className="small">
-                {daysText(m.operatingDays)}
-                {m.openTime && ` · ${m.openTime}-${m.closeTime}`} · ({m.latitude.toFixed(4)}, {m.longitude.toFixed(4)})
+                {daysText(market.operatingDays)}
+                {market.openTime && ` · ${market.openTime}-${market.closeTime}`} · ({market.latitude.toFixed(4)}, {market.longitude.toFixed(4)})
               </div>
             </div>
             <div className="row-gap">
-              <button className="btn btn-outline btn-sm" onClick={() => setEditing(m)}>
+              <button className="btn btn-outline btn-sm" onClick={() => setEditing(market)}>
                 Edit
               </button>
-              <button className="btn btn-ghost btn-sm danger-text" onClick={() => remove(m)}>
+              <button className="btn btn-ghost btn-sm danger-text" onClick={() => remove(market)}>
                 Remove
               </button>
             </div>

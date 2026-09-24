@@ -50,11 +50,11 @@ export default function Notifications() {
       {ann.data?.announcements.length > 0 && (
         <div className="announce-card">
           <span className="kicker">Announcements</span>
-          {ann.data.announcements.slice(0, 3).map((a) => (
-            <p key={a._id}>
-              <strong>{a.title}</strong> <span className="muted small">{new Date(a.createdAt).toLocaleDateString()}</span>
+          {ann.data.announcements.slice(0, 3).map((announcement) => (
+            <p key={announcement._id}>
+              <strong>{announcement.title}</strong> <span className="muted small">{new Date(announcement.createdAt).toLocaleDateString()}</span>
               <br />
-              {a.message}
+              {announcement.message}
             </p>
           ))}
         </div>

@@ -135,7 +135,7 @@ export function SlotPicker({ farmers, date, slot, onDate, onSlot }) {
     <div className="stack">
       <label>
         Pickup date
-        <input type="date" required min={todayISO()} value={date} onChange={(e) => onDate(e.target.value)} />
+        <input type="date" required min={todayISO()} value={date} onChange={(event) => onDate(event.target.value)} />
       </label>
       {date && (
         <div>
@@ -194,8 +194,8 @@ export function ProductMini({ product }) {
 export function SkeletonGrid({ count = 8, className = 'grid grid-4' }) {
   return (
     <div className={className} aria-hidden>
-      {Array.from({ length: count }).map((_, i) => (
-        <div className="card skel-card" key={i}>
+      {Array.from({ length: count }).map((_, index) => (
+        <div className="card skel-card" key={index}>
           <div className="skeleton skel-img" />
           <div className="skeleton skel-line" />
           <div className="skeleton skel-line short" />
@@ -258,10 +258,10 @@ export function OrderStepper({ status, compact = false }) {
   const idx = STEPS.findIndex(([k]) => k === status);
   return (
     <ol className={`stepper ${compact ? 'compact' : ''}`} aria-label={`Order status: ${status}`}>
-      {STEPS.map(([k, label], i) => (
-        <li key={k} className={i < idx ? 'done' : i === idx ? 'now' : ''}>
+      {STEPS.map(([k, label], index) => (
+        <li key={k} className={index < idx ? 'done' : index === idx ? 'now' : ''}>
           <span className="step-dot" aria-hidden>
-            {i < idx || (i === idx && k === 'completed') ? '✓' : i + 1}
+            {index < idx || (index === idx && k === 'completed') ? '✓' : index + 1}
           </span>
           <span className="step-label">{label}</span>
         </li>

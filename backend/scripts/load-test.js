@@ -19,7 +19,7 @@ const oid = () => new mongoose.Types.ObjectId();
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const chunks = async (total, size, make, coll) => {
   for (let i = 0; i < total; i += size) {
-    await coll.insertMany(Array.from({ length: Math.min(size, total - i) }, (_, j) => make(i + j)), { ordered: false });
+    await coll.insertMany(Array.from({ length: Math.min(size, total - i) }, (_, index) => make(i + index)), { ordered: false });
     process.stdout.write(`\r  ${Math.min(i + size, total)}/${total}`);
   }
   process.stdout.write('\n');
@@ -32,7 +32,7 @@ const time = async (label, fn, runs = 7) => {
     await fn();
     ts.push(Number(process.hrtime.bigint() - t) / 1e6);
   }
-  ts.sort((a, b) => a - b);
+  ts.sort((first, second) => first - second);
   console.log(`  ${ts[Math.floor(runs / 2)].toFixed(1).padStart(8)} ms  ${label}`);
   return ts[Math.floor(runs / 2)];
 };
@@ -54,13 +54,13 @@ const plan = async (label, cursor) => {
   const hash = await bcrypt.hash('Password@123', 8);
   const cat = await Category.create({ name: 'Load' });
   const market = await Market.create({ name: 'Load Market', address: 'x', latitude: 24.8, longitude: 67, operatingDays: ['saturday'] });
-  const farmers = Array.from({ length: 50 }, (_, i) => ({
-    _id: oid(), name: `Farmer ${i}`, email: `farmer${i}@load.test`, password: hash, phone: '1', address: 'x', role: 'farmer', isActive: true, createdAt: new Date(), updatedAt: new Date(),
-    farmerProfile: { stallName: `Stall ${i}`, approvalStatus: 'approved', markets: [market._id], operatingDays: ['saturday'], pickupWindows: [], cutoffHours: 12, geo: { type: 'Point', coordinates: [67, 24.8] } },
+  const farmers = Array.from({ length: 50 }, (_, index) => ({
+    _id: oid(), name: `Farmer ${index}`, email: `farmer${index}@load.test`, password: hash, phone: '1', address: 'x', role: 'farmer', isActive: true, createdAt: new Date(), updatedAt: new Date(),
+    farmerProfile: { stallName: `Stall ${index}`, approvalStatus: 'approved', markets: [market._id], operatingDays: ['saturday'], pickupWindows: [], cutoffHours: 12, geo: { type: 'Point', coordinates: [67, 24.8] } },
   }));
   await User.collection.insertMany(farmers);
   await Product.collection.insertMany(
-    Array.from({ length: 1000 }, (_, i) => ({ farmer: pick(farmers)._id, category: cat._id, name: `Product ${i}`, price: 1 + (i % 20), unit: 'kg', quantityAvailable: 50, available: true, isActive: true, ratingAvg: 0, ratingCount: 0, createdAt: new Date(Date.now() - i * 1000), updatedAt: new Date() }))
+    Array.from({ length: 1000 }, (_, index) => ({ farmer: pick(farmers)._id, category: cat._id, name: `Product ${index}`, price: 1 + (index % 20), unit: 'kg', quantityAvailable: 50, available: true, isActive: true, ratingAvg: 0, ratingCount: 0, createdAt: new Date(Date.now() - index * 1000), updatedAt: new Date() }))
   );
 
   console.log(`Seeding ${N} customers...`);
@@ -107,8 +107,8 @@ const plan = async (label, cursor) => {
   await mongoose.connection.dropDatabase();
   console.log('Temporary database dropped.');
   await mongoose.disconnect();
-})().catch(async (e) => {
-  console.error('\nFailed:', e.message);
+})().catch(async (error) => {
+  console.error('\nFailed:', error.message);
   try {
     if (mongoose.connection.name && mongoose.connection.name.endsWith('_loadtest')) await mongoose.connection.dropDatabase();
   } catch { /* ignore */ }

@@ -39,10 +39,10 @@ export default function CommandPalette({ open, onClose }) {
       return undefined;
     }
     let stale = false;
-    const t = setTimeout(() => adminApi.search(q.trim()).then((r) => !stale && setRemote(r.data.results || [])).catch(() => {}), 220);
+    const timer = setTimeout(() => adminApi.search(q.trim()).then((response) => !stale && setRemote(response.data.results || [])).catch(() => {}), 220);
     return () => {
       stale = true;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [q]);
 
@@ -56,25 +56,25 @@ export default function CommandPalette({ open, onClose }) {
     onClose();
     navigate(item.to);
   };
-  const onKey = (e) => {
-    if (e.key === 'Escape') onClose();
-    if (e.key === 'ArrowDown') (e.preventDefault(), setActive((a) => Math.min(a + 1, items.length - 1)));
-    if (e.key === 'ArrowUp') (e.preventDefault(), setActive((a) => Math.max(a - 1, 0)));
-    if (e.key === 'Enter' && items[active]) go(items[active]);
+  const onKey = (event) => {
+    if (event.key === 'Escape') onClose();
+    if (event.key === 'ArrowDown') (event.preventDefault(), setActive((previousActive) => Math.min(previousActive + 1, items.length - 1)));
+    if (event.key === 'ArrowUp') (event.preventDefault(), setActive((previousActive) => Math.max(previousActive - 1, 0)));
+    if (event.key === 'Enter' && items[active]) go(items[active]);
   };
 
   return (
-    <div className="modal-back palette-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-back palette-back" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="palette" role="dialog" aria-modal="true" aria-label="Command palette">
         <div className="palette-input">
           <IconSearch width={20} height={20} />
-          <input ref={input} autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search pages, users, markets, products…" aria-label="Command palette search" />
+          <input ref={input} autoFocus value={q} onChange={(event) => setQ(event.target.value)} onKeyDown={onKey} placeholder="Search pages, users, markets, products…" aria-label="Command palette search" />
           <kbd>Esc</kbd>
         </div>
         <ul className="palette-list" role="listbox">
-          {items.map((it, i) => (
-            <li key={`${it.type}${it.id || it.to}${i}`} role="option" aria-selected={i === active}>
-              <button className={i === active ? 'on' : ''} onMouseEnter={() => setActive(i)} onClick={() => go(it)}>
+          {items.map((it, index) => (
+            <li key={`${it.type}${it.id || it.to}${index}`} role="option" aria-selected={index === active}>
+              <button className={index === active ? 'on' : ''} onMouseEnter={() => setActive(index)} onClick={() => go(it)}>
                 <span className={`pal-type pal-${it.type}`}>{TYPE_LABEL[it.type] || it.type}</span>
                 <span className="pal-text">
                   <strong>{it.title}</strong>

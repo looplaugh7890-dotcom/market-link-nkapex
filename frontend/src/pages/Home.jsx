@@ -24,8 +24,8 @@ const todayName = () => DAYS[(new Date().getDay() + 6) % 7];
 function Hero({ markets, stats }) {
   const { user } = useAuth();
   const today = todayName();
-  const live = [...markets].sort((a, b) => Number(b.operatingDays.includes(today)) - Number(a.operatingDays.includes(today))).slice(0, 3);
-  const openWeek = markets.filter((m) => nextOpenLabel(m.operatingDays)).length;
+  const live = [...markets].sort((first, second) => Number(second.operatingDays.includes(today)) - Number(first.operatingDays.includes(today))).slice(0, 3);
+  const openWeek = markets.filter((market) => nextOpenLabel(market.operatingDays)).length;
   return (
     <section className="hero">
       <div className="hero-bg" aria-hidden />
@@ -125,8 +125,8 @@ function Marquee({ categories }) {
       <div className="marquee-track">
         {[0, 1].map((k) => (
           <div className="marquee-group" key={k}>
-            {[...categories, ...categories].map((c, i) => (
-              <span key={`${c._id}${i}`}>
+            {[...categories, ...categories].map((c, index) => (
+              <span key={`${c._id}${index}`}>
                 {c.name} <i>✦</i>
               </span>
             ))}
@@ -152,13 +152,13 @@ function WeekCalendar({ markets }) {
           </Link>
         </div>
         <div className="week-grid">
-          {DAYS.map((d) => {
-            const open = markets.filter((m) => m.operatingDays.includes(d));
+          {DAYS.map((day) => {
+            const open = markets.filter((market) => market.operatingDays.includes(day));
             return (
-              <div key={d} className={`week-day ${d === today ? 'today' : ''} ${open.length ? '' : 'closed'}`}>
+              <div key={day} className={`week-day ${day === today ? 'today' : ''} ${open.length ? '' : 'closed'}`}>
                 <div className="wd-name">
-                  {cap(d.slice(0, 3))}
-                  {d === today && <em>Today</em>}
+                  {cap(day.slice(0, 3))}
+                  {day === today && <em>Today</em>}
                 </div>
                 {open.length ? (
                   open.map((m) => (
@@ -195,14 +195,14 @@ function CategoryBento({ tiles: raw, loading }) {
           </Link>
         </div>
         <div className="bento">
-          {!tiles.length && Array.from({ length: 9 }).map((_, i) => <div key={i} className={`bento-tile skeleton ${i === 0 ? 'big' : ''}`} aria-hidden />)}
-          {tiles.map((c, i) => (
-            <Link key={c._id} to={`/products?category=${c._id}`} className={`bento-tile ${i === 0 ? 'big' : ''}`} style={c.img ? { backgroundImage: `url(${c.img})` } : undefined}>
-              {!c.img && <span className="bento-emoji">{categoryEmoji(c.name)}</span>}
+          {!tiles.length && Array.from({ length: 9 }).map((_, index) => <div key={index} className={`bento-tile skeleton ${index === 0 ? 'big' : ''}`} aria-hidden />)}
+          {tiles.map((tile, index) => (
+            <Link key={tile._id} to={`/products?category=${tile._id}`} className={`bento-tile ${index === 0 ? 'big' : ''}`} style={tile.img ? { backgroundImage: `url(${tile.img})` } : undefined}>
+              {!tile.img && <span className="bento-emoji">{categoryEmoji(tile.name)}</span>}
               <span className="bento-label">
-                <strong>{c.name}</strong>
+                <strong>{tile.name}</strong>
                 <small>
-                  {c.count} {c.count === 1 ? 'item' : 'items'}
+                  {tile.count} {tile.count === 1 ? 'item' : 'items'}
                 </small>
               </span>
               <span className="bento-go" aria-hidden>
@@ -263,9 +263,9 @@ function Rail({ products }) {
         </div>
       </div>
       <div className="rail" ref={ref} onScroll={measure}>
-        {products.map((p) => (
-          <div className="rail-item" key={p._id}>
-            <ProductCard product={p} />
+        {products.map((product) => (
+          <div className="rail-item" key={product._id}>
+            <ProductCard product={product} />
           </div>
         ))}
       </div>
@@ -281,9 +281,9 @@ function Story() {
         <span className="kicker">How it works</span>
         <h2>From the soil to your bag, in three steps.</h2>
         <ol>
-          {STEPS.map(([t, d], i) => (
+          {STEPS.map(([t, d], index) => (
             <li key={t}>
-              <span className="step-no">0{i + 1}</span>
+              <span className="step-no">0{index + 1}</span>
               <span>
                 <strong>{t}</strong>
                 <span>{d}</span>
@@ -298,7 +298,7 @@ function Story() {
 }
 
 function Growers({ growers, ready }) {
-  const list = growers.map((f) => ({ f, count: f.productCount, img: imageUrl(f.image) }));
+  const list = growers.map((grower) => ({ f: grower, count: grower.productCount, img: imageUrl(grower.image) }));
   if (!list.length) return null;
   return (
     <section className="block">
@@ -348,9 +348,9 @@ function Harvest({ categories }) {
             <button role="tab" aria-selected={tab === ''} className={tab === '' ? 'active' : ''} onClick={() => setTab('')}>
               All
             </button>
-            {categories.map((c) => (
-              <button key={c._id} role="tab" aria-selected={tab === c._id} className={tab === c._id ? 'active' : ''} onClick={() => setTab(c._id)}>
-                {c.name}
+            {categories.map((category) => (
+              <button key={category._id} role="tab" aria-selected={tab === category._id} className={tab === category._id ? 'active' : ''} onClick={() => setTab(category._id)}>
+                {category.name}
               </button>
             ))}
           </div>
@@ -359,8 +359,8 @@ function Harvest({ categories }) {
           <SkeletonGrid count={5} className="grid grid-5" />
         ) : products.length ? (
           <div className="grid grid-5">
-            {products.map((p) => (
-              <ProductCard key={p._id} product={p} />
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
         ) : (
@@ -386,16 +386,16 @@ function Markets({ markets }) {
           </Link>
         </div>
         <ul className="market-rows">
-          {markets.map((m, i) => (
-            <li key={m._id}>
-              <Link to={marketPath(m)}>
-                <span className="mr-no">0{i + 1}</span>
-                <span className="mr-name">{m.name}</span>
+          {markets.map((market, index) => (
+            <li key={market._id}>
+              <Link to={marketPath(market)}>
+                <span className="mr-no">0{index + 1}</span>
+                <span className="mr-name">{market.name}</span>
                 <span className="mr-info">
-                  <span>{daysText(m.operatingDays)}</span>
-                  <span>{hours(m)}</span>
+                  <span>{daysText(market.operatingDays)}</span>
+                  <span>{hours(market)}</span>
                 </span>
-                <span className="mr-next">{nextOpenLabel(m.operatingDays)}</span>
+                <span className="mr-next">{nextOpenLabel(market.operatingDays)}</span>
                 <span className="mr-go" aria-hidden>
                   ↗
                 </span>

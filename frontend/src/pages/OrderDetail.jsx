@@ -13,21 +13,21 @@ const EDITABLE = ['placed', 'accepted'];
 
 function ModifyForm({ order, onDone, onCancel }) {
   const fp = order.farmer.farmerProfile;
-  const [items, setItems] = useState(order.items.map((i) => ({ product: i.product, name: i.name, unit: i.unit, quantity: i.quantity })));
+  const [items, setItems] = useState(order.items.map((item) => ({ product: item.product, name: item.name, unit: item.unit, quantity: item.quantity })));
   const [date, setDate] = useState(order.pickupDate);
   const [slot, setSlot] = useState(`${order.pickupSlot.start}-${order.pickupSlot.end}`);
   const [notes, setNotes] = useState(order.notes || '');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const save = async (e) => {
-    e.preventDefault();
+  const save = async (event) => {
+    event.preventDefault();
     setError('');
     const [start, end] = slot.split('-');
     setBusy(true);
     try {
       await ordersApi.modify(order._id, {
-        items: items.map((i) => ({ product: i.product, quantity: i.quantity })),
+        items: items.map((item) => ({ product: item.product, quantity: item.quantity })),
         pickupDate: date,
         pickupSlot: { start, end },
         notes,
@@ -44,20 +44,20 @@ function ModifyForm({ order, onDone, onCancel }) {
     <form className="card stack" onSubmit={save}>
       <h2>Modify order</h2>
       <p className="muted small">The farmer will need to confirm the changes again.</p>
-      {items.map((i, idx) => (
-        <div className="cart-line" key={i.product}>
-          <div className="cart-info">{i.name}</div>
+      {items.map((item, idx) => (
+        <div className="cart-line" key={item.product}>
+          <div className="cart-info">{item.name}</div>
           <input
             className="qty"
             type="number"
             min="1"
-            value={i.quantity}
-            aria-label={`Quantity of ${i.name}`}
-            onChange={(e) => setItems(items.map((x, n) => (n === idx ? { ...x, quantity: Math.max(1, Number(e.target.value) || 1) } : x)))}
+            value={item.quantity}
+            aria-label={`Quantity of ${item.name}`}
+            onChange={(event) => setItems(items.map((x, index) => (index === idx ? { ...x, quantity: Math.max(1, Number(event.target.value) || 1) } : x)))}
           />
-          <span className="muted small">{i.unit}</span>
+          <span className="muted small">{item.unit}</span>
           {items.length > 1 && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setItems(items.filter((_, n) => n !== idx))}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setItems(items.filter((_, index) => index !== idx))}>
               Remove
             </button>
           )}
@@ -75,7 +75,7 @@ function ModifyForm({ order, onDone, onCancel }) {
       />
       <label>
         Notes
-        <textarea rows={2} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <textarea rows={2} maxLength={500} value={notes} onChange={(event) => setNotes(event.target.value)} />
       </label>
       {error && <p className="alert alert-error">{error}</p>}
       <div className="row-gap">
@@ -120,10 +120,10 @@ export default function OrderDetail() {
   const reorder = async () => {
     try {
       const { items } = (await ordersApi.reorder(o._id)).data;
-      const ok = items.filter((i) => i.canOrder);
+      const ok = items.filter((item) => item.canOrder);
       if (!ok.length) return setMsg({ type: 'error', text: 'None of these items are currently available.' });
       ok.forEach((i) => {
-        const src = o.items.find((x) => x.product === i.product);
+        const src = o.items.find((item) => item.product === i.product);
         cart.addItem(
           { _id: i.product, name: i.name, price: i.currentPrice, unit: src.unit, farmerId: o.farmer._id, stallName: fp.stallName, max: i.quantityAvailable },
           i.requested
@@ -164,12 +164,12 @@ export default function OrderDetail() {
         <div className="grid grid-3">
           <div className="card os-items">
             <h2>Items</h2>
-            {o.items.map((i) => (
-              <div className="between small line" key={i.product}>
+            {o.items.map((item) => (
+              <div className="between small line" key={item.product}>
                 <span>
-                  {i.quantity} {i.unit} × {i.name} <span className="muted">({money(i.price)} each)</span>
+                  {item.quantity} {item.unit} × {item.name} <span className="muted">({money(item.price)} each)</span>
                 </span>
-                <strong>{money(i.price * i.quantity)}</strong>
+                <strong>{money(item.price * item.quantity)}</strong>
               </div>
             ))}
             <div className="between line">
@@ -227,8 +227,8 @@ export default function OrderDetail() {
 
       <h2 className="section-title">Status history</h2>
       <ol className="timeline">
-        {o.statusHistory.map((h, i) => (
-          <li key={i}>
+        {o.statusHistory.map((h, index) => (
+          <li key={index}>
             <StatusTag status={h.status} /> <span className="muted small">{new Date(h.at).toLocaleString()}</span>
           </li>
         ))}

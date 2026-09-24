@@ -56,34 +56,34 @@ const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0
   const orders = [];
   for (let i = 0; i < 120; i++) {
     const daysAgo = Math.floor(Math.pow(Math.random(), 1.5) * 30);
-    const at = new Date(Date.now() - daysAgo * DAY - rnd(12) * 3600 * 1000);
+    const date = new Date(Date.now() - daysAgo * DAY - rnd(12) * 3600 * 1000);
     const farmer = pick(sellers);
     const prods = byFarmer.get(String(farmer._id));
     const chosen = [...prods].sort(() => Math.random() - 0.5).slice(0, 1 + rnd(3));
     const items = chosen.map((p) => ({ product: p._id, name: p.name, unit: p.unit, price: p.price, quantity: 1 + rnd(4) }));
     const status = daysAgo < 2 ? pick(['placed', 'accepted', 'ready', 'completed']) : pick(STATUSES);
-    const pickup = new Date(at.getTime() + 2 * DAY);
-    const history = [{ status: 'placed', at }];
-    if (['accepted', 'ready', 'completed'].includes(status)) history.push({ status: 'accepted', at: new Date(at.getTime() + 3600e3) });
-    if (['ready', 'completed'].includes(status)) history.push({ status: 'ready', at: new Date(at.getTime() + 2 * DAY - 3600e3) });
+    const pickup = new Date(date.getTime() + 2 * DAY);
+    const history = [{ status: 'placed', at: date }];
+    if (['accepted', 'ready', 'completed'].includes(status)) history.push({ status: 'accepted', at: new Date(date.getTime() + 3600e3) });
+    if (['ready', 'completed'].includes(status)) history.push({ status: 'ready', at: new Date(date.getTime() + 2 * DAY - 3600e3) });
     if (status === 'completed') history.push({ status: 'completed', at: pickup });
-    if (['cancelled', 'declined'].includes(status)) history.push({ status, at: new Date(at.getTime() + 1800e3) });
+    if (['cancelled', 'declined'].includes(status)) history.push({ status, at: new Date(date.getTime() + 1800e3) });
     orders.push({
       customer: pick(customers)._id,
       farmer: farmer._id,
       market: pick(farmer.farmerProfile.markets)?._id || pick(farmer.farmerProfile.markets),
       items,
-      totalAmount: Math.round(items.reduce((s, x) => s + x.price * x.quantity, 0) * 100) / 100,
+      totalAmount: Math.round(items.reduce((total, item) => total + item.price * item.quantity, 0) * 100) / 100,
       pickupDate: ymd(pickup),
       pickupSlot: { start: '09:00', end: '10:00' },
       status,
       statusHistory: history,
-      createdAt: at,
-      updatedAt: at,
+      createdAt: date,
+      updatedAt: date,
     });
   }
   await Order.collection.insertMany(orders);
-  const saved = await Order.find({ customer: { $in: customers.map((c) => c._id) }, status: 'completed' });
+  const saved = await Order.find({ customer: { $in: customers.map((customer) => customer._id) }, status: 'completed' });
 
   // reviews on ~35% of completed orders
   let made = 0;
@@ -101,8 +101,8 @@ const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0
   }
   console.log(`Demo data ready: ${customers.length} customers, ${orders.length} orders, ${made} reviews.`);
   await mongoose.disconnect();
-})().catch(async (e) => {
-  console.error(e.message);
+})().catch(async (error) => {
+  console.error(error.message);
   await mongoose.disconnect().catch(() => {});
   process.exit(1);
 });

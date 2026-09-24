@@ -18,10 +18,10 @@ export default function Register() {
 
   if (user) return <Navigate to={homeFor(user)} replace />;
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k) => (event) => setForm({ ...form, [k]: event.target.value });
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
     if (form.password.length < 6) return setError('Password must be at least 6 characters');
     if (form.password !== form.confirm) return setError('Passwords do not match');

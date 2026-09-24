@@ -18,8 +18,8 @@ export function NotificationsProvider({ children }) {
 
   useEffect(refresh, [refresh, pathname]);
   useEffect(() => {
-    const t = setInterval(refresh, 60000);
-    return () => clearInterval(t);
+    const timer = setInterval(refresh, 60000);
+    return () => clearInterval(timer);
   }, [refresh]);
 
   return <NotificationsContext.Provider value={{ unread, refresh }}>{children}</NotificationsContext.Provider>;

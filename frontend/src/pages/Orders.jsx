@@ -18,8 +18,8 @@ export default function Orders() {
   // Soonest open order on this page: shown as a "next pickup" reminder.
   const today = new Date().toISOString().slice(0, 10);
   const next = orders
-    .filter((o) => ['placed', 'accepted', 'ready'].includes(o.status) && o.pickupDate >= today)
-    .sort((a, b) => `${a.pickupDate}${a.pickupSlot.start}`.localeCompare(`${b.pickupDate}${b.pickupSlot.start}`))[0];
+    .filter((order) => ['placed', 'accepted', 'ready'].includes(order.status) && order.pickupDate >= today)
+    .sort((first, second) => `${first.pickupDate}${first.pickupSlot.start}`.localeCompare(`${second.pickupDate}${second.pickupSlot.start}`))[0];
 
   return (
     <>
@@ -68,31 +68,31 @@ export default function Orders() {
       {!loading && !orders.length && <EmptyState icon={IconBasket} title="No orders here yet" text="Reserve fresh produce from a local grower and it will show up here." to="/products" cta="Browse products" />}
 
       <div className="order-list">
-        {orders.map((o) => (
-          <Link to={`/orders/${o._id}`} className="order-tile" key={o._id}>
+        {orders.map((order) => (
+          <Link to={`/orders/${order._id}`} className="order-tile" key={order._id}>
             <div className="ot-top">
               <div>
-                <strong className="ot-farmer">{o.farmer?.farmerProfile?.stallName}</strong>
+                <strong className="ot-farmer">{order.farmer?.farmerProfile?.stallName}</strong>
                 <small className="muted">
-                  #{o._id.slice(-6).toUpperCase()} · placed {new Date(o.createdAt).toLocaleDateString()}
+                  #{order._id.slice(-6).toUpperCase()} · placed {new Date(order.createdAt).toLocaleDateString()}
                 </small>
               </div>
-              <StatusTag status={o.status} />
+              <StatusTag status={order.status} />
             </div>
-            <OrderStepper status={o.status} compact />
+            <OrderStepper status={order.status} compact />
             <div className="ot-items">
-              {o.items.map((i) => (
-                <span key={i.product} className="chip-static">
-                  {i.quantity} {i.unit} {i.name}
+              {order.items.map((item) => (
+                <span key={item.product} className="chip-static">
+                  {item.quantity} {item.unit} {item.name}
                 </span>
               ))}
             </div>
             <div className="ot-foot">
               <span className="muted small">
-                Pickup {o.pickupDate}, {o.pickupSlot.start}–{o.pickupSlot.end}
-                {o.market?.name && ` · ${o.market.name}`}
+                Pickup {order.pickupDate}, {order.pickupSlot.start}–{order.pickupSlot.end}
+                {order.market?.name && ` · ${order.market.name}`}
               </span>
-              <strong>{money(o.totalAmount)}</strong>
+              <strong>{money(order.totalAmount)}</strong>
             </div>
           </Link>
         ))}

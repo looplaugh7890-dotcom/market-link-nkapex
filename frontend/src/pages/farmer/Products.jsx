@@ -29,10 +29,10 @@ function ProductForm({ initial, categories, onSaved, onCancel, id }) {
   const [f, setF] = useState(initial);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
+  const set = (k) => (event) => setF({ ...f, [k]: event.target.type === 'checkbox' ? event.target.checked : event.target.value });
 
-  const upload = async (e) => {
-    const file = e.target.files[0];
+  const upload = async (event) => {
+    const file = event.target.files[0];
     if (!file) return;
     setError('');
     try {
@@ -43,8 +43,8 @@ function ProductForm({ initial, categories, onSaved, onCancel, id }) {
     }
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
     setBusy(true);
     const body = {
@@ -82,9 +82,9 @@ function ProductForm({ initial, categories, onSaved, onCancel, id }) {
           Category
           <select required value={f.category} onChange={set('category')}>
             <option value="">Select</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -131,7 +131,7 @@ function ProductForm({ initial, categories, onSaved, onCancel, id }) {
         <div className="tag-picker">
           {TAGS.map(([v, label]) => (
             <label key={v} className={`tag-opt ${f.tags.includes(v) ? 'on' : ''}`}>
-              <input type="checkbox" checked={f.tags.includes(v)} onChange={() => setF({ ...f, tags: f.tags.includes(v) ? f.tags.filter((t) => t !== v) : [...f.tags, v] })} />
+              <input type="checkbox" checked={f.tags.includes(v)} onChange={() => setF({ ...f, tags: f.tags.includes(v) ? f.tags.filter((tag) => tag !== v) : [...f.tags, v] })} />
               {label}
             </label>
           ))}
@@ -170,7 +170,7 @@ export default function Products() {
   const [msg, setMsg] = useState({ type: '', text: '' });
   const { data, loading, error } = useFetch(() => productsApi.mine(), [tick]);
   const cats = useFetch(() => categoriesApi.list(), []);
-  const reload = () => setTick((t) => t + 1);
+  const reload = () => setTick((previousTick) => previousTick + 1);
 
   const run = async (fn, okText) => {
     setMsg({ type: '', text: '' });
@@ -217,37 +217,37 @@ export default function Products() {
 
       <Status loading={loading} error={error} empty={!products.length} emptyText="You have not added any products yet." />
       <div className="stack">
-        {products.map((p) => {
-          const [cls, label] = STATUS_TAG[p.status];
+        {products.map((product) => {
+          const [cls, label] = STATUS_TAG[product.status];
           return (
-            <div className="card prod-row" key={p._id}>
-              <div className="cart-thumb">{p.image ? <img src={imageUrl(p.image)} alt="" /> : <span aria-hidden>🥬</span>}</div>
+            <div className="card prod-row" key={product._id}>
+              <div className="cart-thumb">{product.image ? <img src={imageUrl(product.image)} alt="" /> : <span aria-hidden>🥬</span>}</div>
               <div className="cart-info">
-                <strong>{p.name}</strong> <span className={cls}>{label}</span>
+                <strong>{product.name}</strong> <span className={cls}>{label}</span>
                 <div className="muted small">
-                  {p.category?.name} · {money(p.price)} / {p.unit} · {p.quantityAvailable} in stock
-                  {p.weeklyTemplate?.enabled && ` · weekly template: ${p.weeklyTemplate.quantity}`}
+                  {product.category?.name} · {money(product.price)} / {product.unit} · {product.quantityAvailable} in stock
+                  {product.weeklyTemplate?.enabled && ` · weekly template: ${product.weeklyTemplate.quantity}`}
                 </div>
               </div>
               <div className="row-gap">
-                <button className="btn btn-outline btn-sm" onClick={() => setEditing(p)}>
+                <button className="btn btn-outline btn-sm" onClick={() => setEditing(product)}>
                   Edit
                 </button>
-                {p.status !== 'sold_out' && (
-                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(p._id, 'sold_out'))}>
+                {product.status !== 'sold_out' && (
+                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(product._id, 'sold_out'))}>
                     Mark sold out
                   </button>
                 )}
-                {p.available ? (
-                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(p._id, 'unavailable'))}>
+                {product.available ? (
+                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(product._id, 'unavailable'))}>
                     Hide temporarily
                   </button>
                 ) : (
-                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(p._id, 'available'))}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => run(() => productsApi.setStatus(product._id, 'available'))}>
                     Show again
                   </button>
                 )}
-                <button className="btn btn-ghost btn-sm danger-text" onClick={async () => (await confirm({ title: `Delete ${p.name}?`, message: 'Customers will no longer see this product. Past orders keep their history.', confirmText: 'Delete', danger: true })) && run(() => productsApi.remove(p._id), 'Product deleted.')}>
+                <button className="btn btn-ghost btn-sm danger-text" onClick={async () => (await confirm({ title: `Delete ${product.name}?`, message: 'Customers will no longer see this product. Past orders keep their history.', confirmText: 'Delete', danger: true })) && run(() => productsApi.remove(product._id), 'Product deleted.')}>
                   Delete
                 </button>
               </div>

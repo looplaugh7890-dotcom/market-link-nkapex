@@ -21,7 +21,7 @@ const OUT = path.join(__dirname, '..', '..', 'database', 'sample-data');
     console.log(`${name}: ${docs.length} document(s)`);
   }
   await mongoose.disconnect();
-})().catch((e) => {
-  console.error(e);
+})().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

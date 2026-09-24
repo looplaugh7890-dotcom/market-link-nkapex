@@ -106,20 +106,20 @@ function SearchForm({ onDone, className = '', autoFocus = false }) {
       return undefined;
     }
     let stale = false;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       searchApi
         .suggest(term)
-        .then((r) => !stale && (setRes(r.data), setActive(-1)))
+        .then((response) => !stale && (setRes(response.data), setActive(-1)))
         .catch(() => !stale && setRes(null));
     }, 180);
     return () => {
       stale = true;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [term]);
 
   useEffect(() => {
-    const away = (e) => !box.current?.contains(e.target) && setOpen(false);
+    const away = (event) => !box.current?.contains(event.target) && setOpen(false);
     document.addEventListener('mousedown', away);
     return () => document.removeEventListener('mousedown', away);
   }, []);
@@ -127,10 +127,10 @@ function SearchForm({ onDone, className = '', autoFocus = false }) {
   // One flat list drives both the rendering order and the arrow-key navigation.
   const rows = [];
   if (term && res) {
-    res.products.forEach((p) => rows.push({ kind: 'product', key: `p${p._id}`, to: productPath(p), p }));
-    res.categories.forEach((c) => rows.push({ kind: 'category', key: `c${c._id}`, to: `/products?category=${c._id}`, label: c.name }));
-    res.farmers.forEach((f) => rows.push({ kind: 'farmer', key: `f${f._id}`, to: farmerPath(f), label: f.name, sub: f.markets.join(' · ') }));
-    res.markets.forEach((m) => rows.push({ kind: 'market', key: `m${m._id}`, to: marketPath(m), label: m.name, sub: m.address }));
+    res.products.forEach((product) => rows.push({ kind: 'product', key: `p${product._id}`, to: productPath(product), p: product }));
+    res.categories.forEach((category) => rows.push({ kind: 'category', key: `c${category._id}`, to: `/products?category=${category._id}`, label: category.name }));
+    res.farmers.forEach((farmer) => rows.push({ kind: 'farmer', key: `f${farmer._id}`, to: farmerPath(farmer), label: farmer.name, sub: farmer.markets.join(' · ') }));
+    res.markets.forEach((market) => rows.push({ kind: 'market', key: `m${market._id}`, to: marketPath(market), label: market.name, sub: market.address }));
   } else if (!term) {
     recent.forEach((r) => rows.push({ kind: 'recent', key: `r${r}`, to: `/products?search=${encodeURIComponent(r)}`, label: r }));
   }
@@ -144,17 +144,17 @@ function SearchForm({ onDone, className = '', autoFocus = false }) {
     navigate(to);
     finish();
   };
-  const submit = (e) => {
-    e.preventDefault();
+  const submit = (event) => {
+    event.preventDefault();
     if (active >= 0 && rows[active]) return go(rows[active].to, rows[active].kind === 'recent' ? rows[active].label : term || undefined);
     if (term) saveRecent(term);
     go(term ? `/products?search=${encodeURIComponent(term)}` : '/products');
   };
-  const onKey = (e) => {
+  const onKey = (event) => {
     if (!rows.length) return;
-    if (e.key === 'ArrowDown') (e.preventDefault(), setActive((a) => (a + 1) % rows.length));
-    if (e.key === 'ArrowUp') (e.preventDefault(), setActive((a) => (a <= 0 ? rows.length - 1 : a - 1)));
-    if (e.key === 'Escape') setOpen(false);
+    if (event.key === 'ArrowDown') (event.preventDefault(), setActive((previousActive) => (previousActive + 1) % rows.length));
+    if (event.key === 'ArrowUp') (event.preventDefault(), setActive((previousActive) => (previousActive <= 0 ? rows.length - 1 : previousActive - 1)));
+    if (event.key === 'Escape') setOpen(false);
   };
 
   const showList = open && (rows.length > 0 || (term && res));
@@ -167,8 +167,8 @@ function SearchForm({ onDone, className = '', autoFocus = false }) {
       <input
         type="search"
         value={q}
-        onChange={(e) => {
-          setQ(e.target.value);
+        onChange={(event) => {
+          setQ(event.target.value);
           setOpen(true);
         }}
         onFocus={() => {
@@ -186,34 +186,34 @@ function SearchForm({ onDone, className = '', autoFocus = false }) {
       <button aria-label="Search">Search</button>
       {showList && (
         <ul className="suggest" role="listbox">
-          {rows.map((r, i) => {
-            const head = r.kind !== last ? GROUP[r.kind] : null;
-            last = r.kind;
+          {rows.map((row, index) => {
+            const head = row.kind !== last ? GROUP[row.kind] : null;
+            last = row.kind;
             return (
-              <li key={r.key} role="option" aria-selected={i === active}>
+              <li key={row.key} role="option" aria-selected={index === active}>
                 {head && <span className="sg-group">{head}</span>}
-                <Link to={r.to} className={i === active ? 'on' : ''} onClick={() => (r.kind === 'recent' ? saveRecent(r.label) : null) || finish()}>
-                  {r.kind === 'product' ? (
+                <Link to={row.to} className={index === active ? 'on' : ''} onClick={() => (row.kind === 'recent' ? saveRecent(row.label) : null) || finish()}>
+                  {row.kind === 'product' ? (
                     <>
-                      <span className="sg-img">{r.p.image ? <img src={imageUrl(r.p.image)} alt="" /> : r.p.name[0]}</span>
+                      <span className="sg-img">{row.p.image ? <img src={imageUrl(row.p.image)} alt="" /> : row.p.name[0]}</span>
                       <span className="sg-text">
                         <strong>
-                          <Mark text={r.p.name} q={term} />
+                          <Mark text={row.p.name} q={term} />
                         </strong>
                         <small>
-                          {r.p.category?.name} · {r.p.farmer?.farmerProfile?.stallName}
+                          {row.p.category?.name} · {row.p.farmer?.farmerProfile?.stallName}
                         </small>
                       </span>
-                      <span className="sg-price">{money(r.p.price)}</span>
+                      <span className="sg-price">{money(row.p.price)}</span>
                     </>
                   ) : (
                     <>
-                      <span className={`sg-badge sg-${r.kind}`} aria-hidden>
-                        {r.kind === 'category' ? '#' : r.kind === 'farmer' ? '★' : r.kind === 'market' ? '⌖' : '↺'}
+                      <span className={`sg-badge sg-${row.kind}`} aria-hidden>
+                        {row.kind === 'category' ? '#' : row.kind === 'farmer' ? '★' : row.kind === 'market' ? '⌖' : '↺'}
                       </span>
                       <span className="sg-text">
-                        <strong>{r.kind === 'recent' ? r.label : <Mark text={r.label} q={term} />}</strong>
-                        {r.sub && <small>{r.sub}</small>}
+                        <strong>{row.kind === 'recent' ? row.label : <Mark text={row.label} q={term} />}</strong>
+                        {row.sub && <small>{row.sub}</small>}
                       </span>
                     </>
                   )}
@@ -240,7 +240,7 @@ function MegaMenu({ home, guest, onClose, onEnter, onLeave }) {
   const tiles = new Map((home?.categoryTiles || []).map((t) => [t._id, t]));
   const cats = (home?.categories || [])
     .map((c) => ({ ...c, ...(tiles.get(c._id) || {}) }))
-    .sort((a, b) => (b.count || 0) - (a.count || 0) || a.name.localeCompare(b.name));
+    .sort((first, second) => (second.count || 0) - (first.count || 0) || first.name.localeCompare(second.name));
   const newest = (home?.newest || []).slice(0, 3);
   return (
     <div className="mega" onMouseEnter={onEnter} onMouseLeave={onLeave} role="region" aria-label="Shop menu">
@@ -253,21 +253,21 @@ function MegaMenu({ home, guest, onClose, onEnter, onLeave }) {
             </Link>
           </div>
           <div className="mega-grid">
-            {cats.map((c) => (
-              <Link key={c._id} to={`/products?category=${c._id}`} className="mega-cat" onClick={onClose}>
-                <span className="mc-img" style={c.image ? { backgroundImage: `url(${imageUrl(c.image)})` } : undefined}>
-                  {!c.image && c.name[0]}
+            {cats.map((cat) => (
+              <Link key={cat._id} to={`/products?category=${cat._id}`} className="mega-cat" onClick={onClose}>
+                <span className="mc-img" style={cat.image ? { backgroundImage: `url(${imageUrl(cat.image)})` } : undefined}>
+                  {!cat.image && cat.name[0]}
                 </span>
                 <span className="mc-text">
-                  <strong>{c.name}</strong>
-                  <small>{c.count ? `${c.count} item${c.count === 1 ? '' : 's'} in stock` : 'Coming soon'}</small>
+                  <strong>{cat.name}</strong>
+                  <small>{cat.count ? `${cat.count} item${cat.count === 1 ? '' : 's'} in stock` : 'Coming soon'}</small>
                 </span>
                 <span className="mc-go" aria-hidden>
                   →
                 </span>
               </Link>
             ))}
-            {!cats.length && Array.from({ length: 9 }).map((_, i) => <span key={i} className="skeleton" style={{ height: 84, borderRadius: 18 }} />)}
+            {!cats.length && Array.from({ length: 9 }).map((_, index) => <span key={index} className="skeleton" style={{ height: 84, borderRadius: 18 }} />)}
           </div>
         </div>
 
@@ -292,9 +292,9 @@ function MegaMenu({ home, guest, onClose, onEnter, onLeave }) {
 
           <span className="kicker dark">Shop by pickup day</span>
           <div className="mega-days">
-            {DAYS.map((d) => (
-              <Link key={d} to={`/products?day=${d}`} onClick={onClose}>
-                {cap(d.slice(0, 3))}
+            {DAYS.map((day) => (
+              <Link key={day} to={`/products?day=${day}`} onClick={onClose}>
+                {cap(day.slice(0, 3))}
               </Link>
             ))}
           </div>
@@ -355,7 +355,7 @@ function Navbar() {
   }, [open, searchOpen]);
   useEffect(() => {
     if (!catOpen && !open) return;
-    const onKey = (e) => e.key === 'Escape' && close();
+    const onKey = (event) => event.key === 'Escape' && close();
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [catOpen, open]);
@@ -406,7 +406,7 @@ function Navbar() {
                     onClick={() => {
                       clearTimeout(hoverTimer.current);
                       setBackTop(headerRef.current?.getBoundingClientRect().bottom || 0);
-                      setCatOpen((o) => !o);
+                      setCatOpen((previousCatOpen) => !previousCatOpen);
                     }}
                   >
                     Categories <IconChevron width={16} height={16} />
@@ -494,9 +494,9 @@ function Navbar() {
             <div className="drawer-cats">
               <h3>Shop by category</h3>
               <div className="chips">
-                {categories.map((c) => (
-                  <Link key={c._id} className="chip" to={`/products?category=${c._id}`}>
-                    {c.name}
+                {categories.map((category) => (
+                  <Link key={category._id} className="chip" to={`/products?category=${category._id}`}>
+                    {category.name}
                   </Link>
                 ))}
               </div>
@@ -535,17 +535,17 @@ function Navbar() {
           <div className="ss-body">
             <span className="sg-group">Popular categories</span>
             <div className="chips">
-              {categories.slice(0, 9).map((c) => (
-                <Link key={c._id} className="chip" to={`/products?category=${c._id}`} onClick={() => setSearchOpen(false)}>
-                  {c.name}
+              {categories.slice(0, 9).map((category) => (
+                <Link key={category._id} className="chip" to={`/products?category=${category._id}`} onClick={() => setSearchOpen(false)}>
+                  {category.name}
                 </Link>
               ))}
             </div>
             <span className="sg-group">Pickup this week</span>
             <div className="chips">
-              {DAYS.map((d) => (
-                <Link key={d} className="chip" to={`/products?day=${d}`} onClick={() => setSearchOpen(false)}>
-                  {cap(d)}
+              {DAYS.map((day) => (
+                <Link key={day} className="chip" to={`/products?day=${day}`} onClick={() => setSearchOpen(false)}>
+                  {cap(day)}
                 </Link>
               ))}
             </div>
@@ -632,9 +632,9 @@ function Footer() {
         <div>
           <h3>Shop by category</h3>
           <ul className="plain small">
-            {categories.map((c) => (
-              <li key={c._id}>
-                <Link to={`/products?category=${c._id}`}>{c.name}</Link>
+            {categories.map((category) => (
+              <li key={category._id}>
+                <Link to={`/products?category=${category._id}`}>{category.name}</Link>
               </li>
             ))}
             <li>
@@ -686,8 +686,8 @@ function Footer() {
           <a
             className="to-top"
             href="#top"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={(event) => {
+              event.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           >
@@ -705,11 +705,11 @@ export default function Layout() {
   // Move focus to the page content on navigation and keep the tab title meaningful.
   useEffect(() => {
     document.getElementById('main')?.focus({ preventScroll: true });
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       const h1 = document.querySelector('main h1')?.textContent;
       document.title = h1 ? `${h1} | MarketLink` : 'MarketLink - Farm Fresh Just a Click Away';
     }, 400);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   return (

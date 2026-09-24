@@ -17,15 +17,15 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={toast}>
       {children}
       <div className="toasts" role="status" aria-live="polite">
-        {items.map((t) => (
-          <div className="toast" key={t.id}>
+        {items.map((item) => (
+          <div className="toast" key={item.id}>
             <span className="toast-tick" aria-hidden>
               ✓
             </span>
-            <span>{t.message}</span>
-            {t.action && (
-              <Link to={t.action.to} onClick={() => setItems((cur) => cur.filter((x) => x.id !== t.id))}>
-                {t.action.label}
+            <span>{item.message}</span>
+            {item.action && (
+              <Link to={item.action.to} onClick={() => setItems((cur) => cur.filter((x) => x.id !== item.id))}>
+                {item.action.label}
               </Link>
             )}
           </div>

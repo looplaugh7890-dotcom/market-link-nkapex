@@ -53,18 +53,18 @@ export default function Audit() {
       {error && <p className="alert alert-error">{error}</p>}
       <div className="ad-card flush">
         <ul className="timeline-log">
-          {loading && !logs.length && Array.from({ length: 6 }).map((_, i) => <li key={i}><div className="skeleton row-skel" /></li>)}
-          {logs.map((l) => (
-            <li key={l._id}>
-              <span className={`tl-dot ${TONE[l.action.split('.')[0]] || 'muted'}`} aria-hidden />
+          {loading && !logs.length && Array.from({ length: 6 }).map((_, index) => <li key={index}><div className="skeleton row-skel" /></li>)}
+          {logs.map((log) => (
+            <li key={log._id}>
+              <span className={`tl-dot ${TONE[log.action.split('.')[0]] || 'muted'}`} aria-hidden />
               <span className="tl-main">
-                <strong>{l.summary}</strong>
+                <strong>{log.summary}</strong>
                 <small>
-                  {l.adminName} · <code>{l.action}</code>
+                  {log.adminName} · <code>{log.action}</code>
                 </small>
               </span>
-              <time className="tl-time" dateTime={l.createdAt} title={new Date(l.createdAt).toLocaleString()}>
-                {timeAgo(l.createdAt)}
+              <time className="tl-time" dateTime={log.createdAt} title={new Date(log.createdAt).toLocaleString()}>
+                {timeAgo(log.createdAt)}
               </time>
             </li>
           ))}

@@ -24,7 +24,7 @@ const User = require('../models/User');
   await Promise.all([Product.syncIndexes(), Market.syncIndexes(), User.syncIndexes()]);
   console.log('Slugs created:', counts);
   await mongoose.disconnect();
-})().catch((e) => {
-  console.error(e);
+})().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

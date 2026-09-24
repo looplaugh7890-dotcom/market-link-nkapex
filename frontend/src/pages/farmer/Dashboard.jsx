@@ -29,7 +29,7 @@ export default function Dashboard() {
     try {
       await ordersApi.setStatus(o._id, status);
       toast(`Order for ${o.customer || 'customer'}: ${label.toLowerCase()}`);
-      setTick((n) => n + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       toast(errorMessage(err));
     } finally {
@@ -57,13 +57,13 @@ export default function Dashboard() {
       </header>
       <ApprovalBanner />
       {error && <p className="alert alert-error">{error}</p>}
-      {!s && loading && <div className="ad-skeleton">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="skeleton" />)}</div>}
+      {!s && loading && <div className="ad-skeleton">{Array.from({ length: 3 }).map((_, index) => <div key={index} className="skeleton" />)}</div>}
       {s && (
         <>
           <section className="kpis four">
-            <Kpi icon={IconBox} label="Total orders" value={s.totalOrders} sub={`${s.ordersByStatus.completed || 0} completed`} spark={<Sparkline values={s.days.map((d) => d.orders)} />} />
+            <Kpi icon={IconBox} label="Total orders" value={s.totalOrders} sub={`${s.ordersByStatus.completed || 0} completed`} spark={<Sparkline values={s.days.map((day) => day.orders)} />} />
             <Kpi icon={IconBasket} label="Pending orders" value={s.pendingOrders} sub={s.pendingOrders ? 'Waiting for your decision' : 'You are all caught up'} to="/farmer/orders" />
-            <Kpi icon={IconCash} label="Revenue (paid at pickup)" value={money(s.revenue)} sub="From completed orders" spark={<Sparkline values={s.days.map((d) => d.revenue)} color="var(--orange)" />} />
+            <Kpi icon={IconCash} label="Revenue (paid at pickup)" value={money(s.revenue)} sub="From completed orders" spark={<Sparkline values={s.days.map((day) => day.revenue)} color="var(--orange)" />} />
             <Kpi icon={IconStar} label="Customer rating" value={rating ? `${rating.toFixed(1)} ★` : '–'} sub={user.farmerProfile?.ratingCount ? `${user.farmerProfile.ratingCount} reviews` : 'No reviews yet'} to="/farmer/reviews" />
           </section>
 
@@ -87,8 +87,8 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="chip-row inline no-print" role="tablist" aria-label="Pickup date">
-                  {s.pickList.map((d, i) => (
-                    <button key={d.date} role="tab" aria-selected={i === dayIdx} className={i === dayIdx ? 'active' : ''} onClick={() => setDayIdx(i)}>
+                  {s.pickList.map((d, index) => (
+                    <button key={d.date} role="tab" aria-selected={index === dayIdx} className={index === dayIdx ? 'active' : ''} onClick={() => setDayIdx(index)}>
                       {prettyDate(d.date)} · {d.orders.length}
                     </button>
                   ))}
@@ -100,12 +100,12 @@ export default function Dashboard() {
                       {pick.orders.length} order{pick.orders.length === 1 ? '' : 's'} · {money(pick.total)} to collect at pickup
                     </p>
                     <ul className="pack-list">
-                      {pick.items.map((i) => (
-                        <li key={`${i.name}${i.unit}`}>
-                          <span className="pack-qty">{i.quantity}</span>
+                      {pick.items.map((item) => (
+                        <li key={`${item.name}${item.unit}`}>
+                          <span className="pack-qty">{item.quantity}</span>
                           <span>
-                            <strong>{i.name}</strong>
-                            <small>{i.unit}</small>
+                            <strong>{item.name}</strong>
+                            <small>{item.unit}</small>
                           </span>
                         </li>
                       ))}
@@ -114,23 +114,23 @@ export default function Dashboard() {
                   <div>
                     <h3 className="pick-h">Orders by pickup time</h3>
                     <ul className="pick-orders">
-                      {pick.orders.map((o) => (
-                        <li key={o._id}>
+                      {pick.orders.map((order) => (
+                        <li key={order._id}>
                           <div className="po-top">
                             <strong>
-                              {o.slot.start}–{o.slot.end}
+                              {order.slot.start}–{order.slot.end}
                             </strong>
-                            <span>{o.customer}</span>
-                            <StatusTag status={o.status} />
+                            <span>{order.customer}</span>
+                            <StatusTag status={order.status} />
                           </div>
                           <small className="muted">
-                            {o.items.map((i) => `${i.quantity} ${i.unit} ${i.name}`).join(', ')} · {money(o.total)}
-                            {o.phone ? ` · ${o.phone}` : ''}
+                            {order.items.map((item) => `${item.quantity} ${item.unit} ${item.name}`).join(', ')} · {money(order.total)}
+                            {order.phone ? ` · ${order.phone}` : ''}
                           </small>
-                          {o.notes && <small className="po-note">“{o.notes}”</small>}
+                          {order.notes && <small className="po-note">“{order.notes}”</small>}
                           <span className="po-actions no-print">
-                            {(NEXT[o.status] || []).map(([st, label], n) => (
-                              <button key={st} className={`btn btn-sm ${n ? 'btn-outline' : ''}`} disabled={busy === o._id} onClick={() => move(o, st, label)}>
+                            {(NEXT[order.status] || []).map(([st, label], index) => (
+                              <button key={st} className={`btn btn-sm ${index ? 'btn-outline' : ''}`} disabled={busy === order._id} onClick={() => move(order, st, label)}>
                                 {label}
                               </button>
                             ))}
@@ -148,9 +148,9 @@ export default function Dashboard() {
             <div className="ad-card">
               <div className="ad-card-head">
                 <h2>Orders, last 14 days</h2>
-                <span className="muted small">{s.days.reduce((n, d) => n + d.orders, 0)} orders</span>
+                <span className="muted small">{s.days.reduce((total, day) => total + day.orders, 0)} orders</span>
               </div>
-              <BarChart data={s.days.map((d) => ({ label: shortDay(d.day), value: d.orders, sub: `${money(d.revenue)} completed` }))} height={170} />
+              <BarChart data={s.days.map((day) => ({ label: shortDay(day.day), value: day.orders, sub: `${money(day.revenue)} completed` }))} height={170} />
             </div>
             <div className="ad-card">
               <div className="ad-card-head">
@@ -169,17 +169,17 @@ export default function Dashboard() {
                 </Link>
               </div>
               <ul className="feed">
-                {s.recentOrders.map((o) => (
-                  <li key={o._id}>
+                {s.recentOrders.map((recentOrder) => (
+                  <li key={recentOrder._id}>
                     <span className="feed-main">
                       <strong>
-                        #{o._id.slice(-6).toUpperCase()} · {o.customer?.name}
+                        #{recentOrder._id.slice(-6).toUpperCase()} · {recentOrder.customer?.name}
                       </strong>
-                      <small>{timeAgo(o.createdAt)}</small>
+                      <small>{timeAgo(recentOrder.createdAt)}</small>
                     </span>
                     <span className="feed-side">
-                      <b>{money(o.totalAmount)}</b>
-                      <StatusTag status={o.status} />
+                      <b>{money(recentOrder.totalAmount)}</b>
+                      <StatusTag status={recentOrder.status} />
                     </span>
                   </li>
                 ))}

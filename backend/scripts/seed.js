@@ -28,7 +28,7 @@ const PASSWORD = 'Password@123';
   const categories = await Category.insertMany(
     ['Vegetables', 'Fruits', 'Dairy', 'Baked Goods', 'Eggs & Poultry'].map((name) => ({ name }))
   );
-  const cat = Object.fromEntries(categories.map((c) => [c.name, c._id]));
+  const cat = Object.fromEntries(categories.map((category) => [category.name, category._id]));
 
   const market = await Market.create({
     name: 'Green Valley Market',
@@ -84,4 +84,4 @@ const PASSWORD = 'Password@123';
   console.log(' farmer   pending.farmer@marketlink.test (pending approval)');
   console.log(' customer customer@marketlink.test');
   await mongoose.disconnect();
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch((error) => { console.error(error); process.exit(1); });

@@ -17,9 +17,9 @@ export default function Cart() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const farmerIds = useMemo(() => [...new Set(cart.items.map((i) => i.product.farmerId))], [cart.items]);
+  const farmerIds = useMemo(() => [...new Set(cart.items.map((item) => item.product.farmerId))], [cart.items]);
   const { data: farmers, loading } = useFetch(
-    () => Promise.all(farmerIds.map((id) => farmersApi.get(id).catch(() => null))).then((rs) => ({ data: rs.map((r) => r?.data || null) })),
+    () => Promise.all(farmerIds.map((farmerId) => farmersApi.get(farmerId).catch(() => null))).then((rs) => ({ data: rs.map((r) => r?.data || null) })),
     [farmerIds.join(',')]
   );
 
@@ -36,15 +36,15 @@ export default function Cart() {
   }, [farmers]);
 
   const profiles = useMemo(() => (farmers || []).filter(Boolean).map((f) => f.farmer.farmerProfile), [farmers]);
-  const missing = farmers ? cart.items.filter((i) => !live[i.product._id]) : [];
+  const missing = farmers ? cart.items.filter((item) => !live[item.product._id]) : [];
 
   // Markets that every farmer in the cart sells at.
   const commonMarkets = useMemo(() => {
-    const lists = profiles.map((p) => p.markets || []).filter((m) => m.length);
+    const lists = profiles.map((profile) => profile.markets || []).filter((m) => m.length);
     if (!lists.length) return [];
-    return lists[0].filter((m) => lists.every((l) => l.some((x) => x._id === m._id)));
+    return lists[0].filter((m) => lists.every((list) => list.some((x) => x._id === m._id)));
   }, [profiles]);
-  const noCommonMarket = profiles.some((p) => p.markets?.length) && !commonMarkets.length;
+  const noCommonMarket = profiles.some((profile) => profile.markets?.length) && !commonMarkets.length;
 
   if (!cart.items.length) {
     return (
@@ -56,19 +56,19 @@ export default function Cart() {
   }
 
   const groups = farmerIds.map((fid) => {
-    const lines = cart.items.filter((i) => i.product.farmerId === fid);
+    const lines = cart.items.filter((item) => item.product.farmerId === fid);
     return { fid, stall: lines[0].product.stallName, lines };
   });
   const canSubmit = !loading && !missing.length && !noCommonMarket && date && slot && (!commonMarkets.length || market);
 
-  const place = async (e) => {
-    e.preventDefault();
+  const place = async (event) => {
+    event.preventDefault();
     setError('');
     const [start, end] = slot.split('-');
     setBusy(true);
     try {
       const res = await ordersApi.place({
-        items: cart.items.map((i) => ({ product: i.product._id, quantity: i.quantity })),
+        items: cart.items.map((item) => ({ product: item.product._id, quantity: item.quantity })),
         market: market || undefined,
         pickupDate: date,
         pickupSlot: { start, end },
@@ -88,12 +88,12 @@ export default function Cart() {
       <PageHead kicker="Cart" title="Your cart" sub={`${cart.count} item${cart.count === 1 ? '' : 's'} · reserve now, pay in person at pickup`} />
       <div className="cart-layout">
       <div className="cart-groups">
-      {groups.map((g) => (
-        <div className="card mb" key={g.fid}>
+      {groups.map((group) => (
+        <div className="card mb" key={group.fid}>
           <h2>
-            <Link to={`/farmers/${g.fid}`}>{g.stall}</Link>
+            <Link to={`/farmers/${group.fid}`}>{group.stall}</Link>
           </h2>
-          {g.lines.map(({ product: p, quantity }) => {
+          {group.lines.map(({ product: p, quantity }) => {
             const gone = farmers && !live[p._id];
             const img = imageUrl(p.image);
             return (
@@ -106,7 +106,7 @@ export default function Cart() {
                   </div>
                   {gone && <div className="alert alert-error">No longer available. Remove it to continue.</div>}
                 </div>
-                <input className="qty" type="number" min="1" max={p.max} value={quantity} disabled={gone} onChange={(e) => cart.setQuantity(p._id, Number(e.target.value) || 1)} aria-label={`Quantity of ${p.name}`} />
+                <input className="qty" type="number" min="1" max={p.max} value={quantity} disabled={gone} onChange={(event) => cart.setQuantity(p._id, Number(event.target.value) || 1)} aria-label={`Quantity of ${p.name}`} />
                 <strong className="cart-sub">{money(p.price * quantity)}</strong>
                 <button className="btn btn-ghost btn-sm" onClick={() => cart.removeItem(p._id)} aria-label={`Remove ${p.name}`}>
                   Remove
@@ -126,11 +126,11 @@ export default function Cart() {
         {commonMarkets.length > 0 && (
           <label>
             Pickup market
-            <select required value={market} onChange={(e) => setMarket(e.target.value)}>
+            <select required value={market} onChange={(event) => setMarket(event.target.value)}>
               <option value="">Select a market</option>
-              {commonMarkets.map((m) => (
-                <option key={m._id} value={m._id}>
-                  {m.name}
+              {commonMarkets.map((commonMarket) => (
+                <option key={commonMarket._id} value={commonMarket._id}>
+                  {commonMarket.name}
                 </option>
               ))}
             </select>
@@ -150,7 +150,7 @@ export default function Cart() {
         )}
         <label>
           Notes for the farmer (optional)
-          <textarea rows={2} maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <textarea rows={2} maxLength={500} value={notes} onChange={(event) => setNotes(event.target.value)} />
         </label>
         <div className="between">
           <h2>Total: {money(cart.total)}</h2>

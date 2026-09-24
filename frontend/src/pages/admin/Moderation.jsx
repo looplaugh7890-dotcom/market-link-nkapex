@@ -30,7 +30,7 @@ export default function Moderation() {
     try {
       await fn();
       toast(done);
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       setMsg(errorMessage(err));
     }
@@ -63,10 +63,10 @@ export default function Moderation() {
         </div>
       )}
       {tab === 'products' && (
-        <form className="filters card mt" onSubmit={(e) => { e.preventDefault(); setQuery(search.trim()); setPage(1); }}>
+        <form className="filters card mt" onSubmit={(event) => { event.preventDefault(); setQuery(search.trim()); setPage(1); }}>
           <label>
             Search products
-            <input value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} />
           </label>
           <div className="filter-actions">
             <button className="btn">Search</button>

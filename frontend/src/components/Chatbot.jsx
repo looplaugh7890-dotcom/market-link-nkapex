@@ -24,14 +24,14 @@ export default function Chatbot() {
   const send = async (raw) => {
     const msg = raw.trim();
     if (!msg || busy) return;
-    setMessages((m) => [...m, { from: 'user', text: msg }]);
+    setMessages((previousMessages) => [...previousMessages, { from: 'user', text: msg }]);
     setText('');
     setBusy(true);
     try {
       const { data } = await chatbotApi.ask(msg);
-      setMessages((m) => [...m, { from: 'bot', text: data.reply, data: data.data }]);
-    } catch (err) {
-      setMessages((m) => [...m, { from: 'bot', text: errorMessage(err) }]);
+      setMessages((previousMessages) => [...previousMessages, { from: 'bot', text: data.reply, data: data.data }]);
+    } catch (error) {
+      setMessages((previousMessages) => [...previousMessages, { from: 'bot', text: errorMessage(error) }]);
     } finally {
       setBusy(false);
     }
@@ -48,32 +48,32 @@ export default function Chatbot() {
             </button>
           </header>
           <div className="chat-body" aria-live="polite">
-            {messages.map((m, i) => (
-              <div key={i} className={`bubble ${m.from}`}>
-                {m.text.split('\n').map((line, n) => (
+            {messages.map((message, index) => (
+              <div key={index} className={`bubble ${message.from}`}>
+                {message.text.split('\n').map((line, n) => (
                   <div key={n}>{line}</div>
                 ))}
-                {m.data?.products && (
+                {message.data?.products && (
                   <div className="bubble-links">
-                    {m.data.products.map((p) => (
-                      <Link key={p._id} to={`/products/${p._id}`} onClick={() => setOpen(false)}>
-                        View {p.name}
+                    {message.data.products.map((product) => (
+                      <Link key={product._id} to={`/products/${product._id}`} onClick={() => setOpen(false)}>
+                        View {product.name}
                       </Link>
                     ))}
                   </div>
                 )}
-                {m.data?.markets && (
+                {message.data?.markets && (
                   <div className="bubble-links">
-                    {m.data.markets.map((mk) => (
-                      <Link key={mk._id} to={`/markets/${mk._id}`} onClick={() => setOpen(false)}>
-                        View {mk.name}
+                    {message.data.markets.map((market) => (
+                      <Link key={market._id} to={`/markets/${market._id}`} onClick={() => setOpen(false)}>
+                        View {market.name}
                       </Link>
                     ))}
                   </div>
                 )}
-                {m.data?.farmerId && (
+                {message.data?.farmerId && (
                   <div className="bubble-links">
-                    <Link to={`/farmers/${m.data.farmerId}`} onClick={() => setOpen(false)}>
+                    <Link to={`/farmers/${message.data.farmerId}`} onClick={() => setOpen(false)}>
                       View stall
                     </Link>
                   </div>
@@ -94,12 +94,12 @@ export default function Chatbot() {
           )}
           <form
             className="chat-form"
-            onSubmit={(e) => {
-              e.preventDefault();
+            onSubmit={(event) => {
+              event.preventDefault();
               send(text);
             }}
           >
-            <input value={text} maxLength={300} placeholder="Ask about products, markets..." onChange={(e) => setText(e.target.value)} aria-label="Your message" />
+            <input value={text} maxLength={300} placeholder="Ask about products, markets..." onChange={(event) => setText(event.target.value)} aria-label="Your message" />
             <button className="btn btn-sm" disabled={busy || !text.trim()}>
               Send
             </button>

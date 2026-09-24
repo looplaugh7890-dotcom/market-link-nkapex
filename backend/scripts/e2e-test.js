@@ -33,16 +33,16 @@ const login = async (email, password = PASSWORD) => (await call('POST', '/auth/l
 
 // Next date (>= 3 days ahead) that falls on a Saturday, formatted YYYY-MM-DD in local time.
 const nextSaturday = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 3);
-  while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const date = new Date();
+  date.setDate(date.getDate() + 3);
+  while (date.getDay() !== 6) date.setDate(date.getDate() + 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 const nextMonday = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 3);
-  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const date = new Date();
+  date.setDate(date.getDate() + 3);
+  while (date.getDay() !== 1) date.setDate(date.getDate() + 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
 (async () => {
@@ -97,7 +97,7 @@ const nextMonday = () => {
   section('Browse markets, farmers and products (public)');
   r = await call('GET', '/markets?limit=50');
   const markets = r.markets || [];
-  const green = markets.find((m) => m.name === 'Green Valley Market');
+  const green = markets.find((market) => market.name === 'Green Valley Market');
   ok('Markets list is available', markets.length >= 1 && green);
   r = await call('GET', '/markets?day=monday&limit=50');
   ok('Filter markets by day = Monday returns no Green Valley', !(r.markets || []).some((m) => m.name === 'Green Valley Market'));
@@ -108,20 +108,20 @@ const nextMonday = () => {
   r = await call('GET', `/markets/${green._id}`);
   ok('Market detail shows coordinates and farmers present', r.market?.latitude && Array.isArray(r.farmers) && r.farmers.length >= 1);
   r = await call('GET', '/farmers?limit=50');
-  ok('Farmers list is public and hides pending farmers', r.farmers?.length >= 1 && !r.farmers.some((f) => f._id === farmId));
+  ok('Farmers list is public and hides pending farmers', r.farmers?.length >= 1 && !r.farmers.some((farmer) => farmer._id === farmId));
   const fred = (r.farmers || []).find((f) => f.farmerProfile?.stallName?.startsWith("Fred's"));
   r = await call('GET', `/farmers/${fred?._id}`);
   ok('Farmer profile shows stall name, location, days and current stock', r.farmer?.farmerProfile?.stallName && Array.isArray(r.products) && r.products.length >= 1, JSON.stringify(Object.keys(r)));
   const cats = (await call('GET', '/categories')).categories || [];
   const veg = cats.find((c) => c.name === 'Vegetables');
   r = await call('GET', `/products?category=${veg._id}&minPrice=2&maxPrice=4&market=${green._id}`);
-  ok('Product filter category + price + market works', r.products?.length >= 1 && r.products.every((p) => p.price >= 2 && p.price <= 4 && p.category?._id === veg._id), `${r.total}`);
+  ok('Product filter category + price + market works', r.products?.length >= 1 && r.products.every((product) => product.price >= 2 && product.price <= 4 && product.category?._id === veg._id), `${r.total}`);
   r = await call('GET', '/products?day=saturday');
   ok('Product filter by market day works', r.success && r.total >= 1);
   r = await call('GET', '/products?search=tomato');
   ok('Product text search works', r.products?.some((p) => /tomato/i.test(p.name)));
   r = await call('GET', '/products?sort=price_asc&limit=5');
-  ok('Product sort by price ascending', r.products?.length > 1 && r.products.every((p, i, a) => i === 0 || a[i - 1].price <= p.price));
+  ok('Product sort by price ascending', r.products?.length > 1 && r.products.every((product, index, a) => index === 0 || a[index - 1].price <= product.price));
   const tomato = (await call('GET', '/products?search=tomato')).products[0];
   r = await call('GET', `/products/${tomato._id}`);
   ok('Product detail: price, unit, quantity, farmer', r.product?.price && r.product?.unit && r.product?.quantityAvailable !== undefined && r.product?.farmer?._id);
@@ -212,7 +212,7 @@ const nextMonday = () => {
   ok('Farmer completes the order', r.order?.status === 'completed');
   r = await call('GET', '/notifications', custToken);
   const notes = r.notifications || [];
-  ok('Customer got in-app alerts for accepted / ready / completed', ['accepted', 'ready', 'completed'].every((s) => notes.some((n) => new RegExp(s, 'i').test(n.title + n.message))), notes.map((n) => n.title).join(', '));
+  ok('Customer got in-app alerts for accepted / ready / completed', ['accepted', 'ready', 'completed'].every((s) => notes.some((note) => new RegExp(s, 'i').test(note.title + note.message))), notes.map((note) => note.title).join(', '));
   r = await call('GET', `/orders/${order2._id}/reorder`, custToken);
   ok('Quick reorder returns the previous items', r.status === 200, JSON.stringify(r).slice(0, 120));
 
@@ -387,7 +387,7 @@ const nextMonday = () => {
   r = await call('GET', '/admin/audit?limit=50', admin);
   ok('Audit log records admin actions (approve, bulk, export, report)', r.logs?.some((l) => /^farmer\./.test(l.action)) && r.logs?.some((l) => l.action.startsWith('bulk.')) && r.logs?.some((l) => l.action === 'export'), (r.logs || []).map((l) => l.action).slice(0, 8).join(','));
   r = await call('GET', '/admin/audit?action=bulk', admin);
-  ok('Audit log can be filtered by action', r.logs?.length >= 2 && r.logs.every((l) => l.action.startsWith('bulk')));
+  ok('Audit log can be filtered by action', r.logs?.length >= 2 && r.logs.every((log) => log.action.startsWith('bulk')));
 
   // ---------------------------------------------------------------- cleanup
   section('Cleanup');
@@ -401,7 +401,7 @@ const nextMonday = () => {
   const Category = require('../models/Category');
   const Announcement = require('../models/Announcement');
   const users = await User.find({ email: /^e2e\+/ }).select('_id');
-  const ids = users.map((u) => u._id);
+  const ids = users.map((user) => user._id);
   await Promise.all([
     Order.deleteMany({ $or: [{ customer: { $in: ids } }, { farmer: { $in: ids } }] }),
     Product.deleteMany({ farmer: { $in: ids } }),
@@ -416,13 +416,13 @@ const nextMonday = () => {
   ]);
   console.log(`  removed ${ids.length} test users and their data`);
 
-  const failed = results.filter((x) => !x.pass);
+  const failed = results.filter((result) => !result.pass);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed${failed.length ? `, ${failed.length} FAILED:` : '.'}`);
   failed.forEach((f) => console.log(`  x ${f.name}`));
   await mongoose.disconnect();
   process.exit(failed.length ? 1 : 0);
-})().catch(async (e) => {
-  console.error('Test run crashed:', e);
+})().catch(async (error) => {
+  console.error('Test run crashed:', error);
   await mongoose.disconnect().catch(() => {});
   process.exit(2);
 });

@@ -30,9 +30,9 @@ export default function Profile() {
   const [msg, setMsg] = useState({ type: '', text: '' });
   const [busy, setBusy] = useState(false);
 
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const set = (k) => (event) => setF({ ...f, [k]: event.target.value });
   const toggle = (k, v) => setF({ ...f, [k]: f[k].includes(v) ? f[k].filter((x) => x !== v) : [...f[k], v] });
-  const setWindow = (i, patch) => setF({ ...f, pickupWindows: f.pickupWindows.map((w, n) => (n === i ? { ...w, ...patch } : w)) });
+  const setWindow = (i, patch) => setF({ ...f, pickupWindows: f.pickupWindows.map((pickupWindow, index) => (index === i ? { ...pickupWindow, ...patch } : pickupWindow)) });
 
   const useMyLocation = () =>
     navigator.geolocation?.getCurrentPosition(
@@ -44,8 +44,8 @@ export default function Profile() {
   const lng = parseFloat(f.longitude);
   const hasPin = Number.isFinite(lat) && Number.isFinite(lng);
 
-  const save = async (e) => {
-    e.preventDefault();
+  const save = async (event) => {
+    event.preventDefault();
     setMsg({ type: '', text: '' });
     setBusy(true);
     const location = { address: f.address, mapPin: f.mapPin };
@@ -63,8 +63,8 @@ export default function Profile() {
       });
       setUser(res.data.user);
       setMsg({ type: 'info', text: 'Profile saved.' });
-    } catch (err) {
-      setMsg({ type: 'error', text: errorMessage(err) });
+    } catch (error) {
+      setMsg({ type: 'error', text: errorMessage(error) });
     } finally {
       setBusy(false);
     }
@@ -113,9 +113,9 @@ export default function Profile() {
           <fieldset>
             <legend>Operating days</legend>
             <div className="row-gap">
-              {DAYS.map((d) => (
-                <label className="check" key={d}>
-                  <input type="checkbox" checked={f.operatingDays.includes(d)} onChange={() => toggle('operatingDays', d)} /> {cap(d)}
+              {DAYS.map((day) => (
+                <label className="check" key={day}>
+                  <input type="checkbox" checked={f.operatingDays.includes(day)} onChange={() => toggle('operatingDays', day)} /> {cap(day)}
                 </label>
               ))}
             </div>
@@ -125,18 +125,18 @@ export default function Profile() {
         <div className="card stack">
           <h2>Pickup time windows</h2>
           <p className="muted small">Customers can only pick a pickup slot inside these windows.</p>
-          {f.pickupWindows.map((w, i) => (
-            <div className="win-row" key={i}>
-              <select value={w.day} onChange={(e) => setWindow(i, { day: e.target.value })} aria-label="Day">
-                {DAYS.map((d) => (
-                  <option key={d} value={d}>
-                    {cap(d)}
+          {f.pickupWindows.map((pickupWindow, index) => (
+            <div className="win-row" key={index}>
+              <select value={pickupWindow.day} onChange={(event) => setWindow(index, { day: event.target.value })} aria-label="Day">
+                {DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {cap(day)}
                   </option>
                 ))}
               </select>
-              <input type="time" required value={w.start} onChange={(e) => setWindow(i, { start: e.target.value })} aria-label="Start time" />
-              <input type="time" required value={w.end} onChange={(e) => setWindow(i, { end: e.target.value })} aria-label="End time" />
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setF({ ...f, pickupWindows: f.pickupWindows.filter((_, n) => n !== i) })}>
+              <input type="time" required value={pickupWindow.start} onChange={(event) => setWindow(index, { start: event.target.value })} aria-label="Start time" />
+              <input type="time" required value={pickupWindow.end} onChange={(event) => setWindow(index, { end: event.target.value })} aria-label="End time" />
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setF({ ...f, pickupWindows: f.pickupWindows.filter((_, n) => n !== index) })}>
                 Remove
               </button>
             </div>

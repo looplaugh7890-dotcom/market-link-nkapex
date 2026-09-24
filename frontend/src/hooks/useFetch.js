@@ -7,7 +7,7 @@ export default function useFetch(fn, deps = []) {
 
   useEffect(() => {
     let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: '' }));
+    setState((previousState) => ({ ...previousState, loading: true, error: '' }));
     fn()
       .then((res) => !cancelled && setState({ data: res.data, loading: false, error: '' }))
       .catch((err) => !cancelled && setState({ data: null, loading: false, error: errorMessage(err) }));

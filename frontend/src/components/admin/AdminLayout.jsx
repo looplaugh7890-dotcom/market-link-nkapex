@@ -20,10 +20,10 @@ export default function AdminLayout() {
   const [palette, setPalette] = useState(false);
 
   useEffect(() => {
-    const onKey = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setPalette((o) => !o);
+    const onKey = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPalette((previousPalette) => !previousPalette);
       }
     };
     document.addEventListener('keydown', onKey);

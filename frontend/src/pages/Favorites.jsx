@@ -33,42 +33,42 @@ export default function Favorites() {
 
       {tab === 'products' && items.length > 0 && (
         <div className="grid grid-products">
-          {items.map((p) => (
-            <ProductCard key={p._id} product={{ ...p, quantityAvailable: p.available ? p.quantityAvailable : 0 }} />
+          {items.map((item) => (
+            <ProductCard key={item._id} product={{ ...item, quantityAvailable: item.available ? item.quantityAvailable : 0 }} />
           ))}
         </div>
       )}
       {tab === 'farmers' && (
         <div className="markets-cards">
-          {items.map((f) => (
-            <div className="market-card" key={f._id}>
+          {items.map((item) => (
+            <div className="market-card" key={item._id}>
               <div className="between">
                 <h3>
-                  <Link to={farmerPath(f)}>{f.farmerProfile?.stallName}</Link>
+                  <Link to={farmerPath(item)}>{item.farmerProfile?.stallName}</Link>
                 </h3>
-                <FavoriteButton type="farmers" id={f._id} />
+                <FavoriteButton type="farmers" id={item._id} />
               </div>
-              <p className="muted small">{f.farmerProfile?.location?.address}</p>
+              <p className="muted small">{item.farmerProfile?.location?.address}</p>
             </div>
           ))}
         </div>
       )}
       {tab === 'markets' && (
         <div className="markets-cards">
-          {items.map((m) => (
-            <div className="market-card" key={m._id}>
+          {items.map((item) => (
+            <div className="market-card" key={item._id}>
               <div className="between">
                 <h3>
-                  <Link to={marketPath(m)}>{m.name}</Link>
+                  <Link to={marketPath(item)}>{item.name}</Link>
                 </h3>
-                <FavoriteButton type="markets" id={m._id} />
+                <FavoriteButton type="markets" id={item._id} />
               </div>
-              <p className="muted small">{m.address}</p>
+              <p className="muted small">{item.address}</p>
               <p className="small">
-                <strong>Open:</strong> {daysText(m.operatingDays)}
-                {m.openTime && ` · ${m.openTime}-${m.closeTime}`}
+                <strong>Open:</strong> {daysText(item.operatingDays)}
+                {item.openTime && ` · ${item.openTime}-${item.closeTime}`}
               </p>
-              <a className="small" href={`https://www.openstreetmap.org/directions?to=${m.latitude}%2C${m.longitude}`} target="_blank" rel="noreferrer">
+              <a className="small" href={`https://www.openstreetmap.org/directions?to=${item.latitude}%2C${item.longitude}`} target="_blank" rel="noreferrer">
                 Route-friendly pickup directions
               </a>
             </div>

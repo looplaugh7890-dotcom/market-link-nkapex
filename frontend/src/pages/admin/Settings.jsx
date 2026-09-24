@@ -19,7 +19,7 @@ function Categories() {
     try {
       await fn();
       if (ok) toast(ok);
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       setMsg({ type: 'error', text: errorMessage(err) });
     }
@@ -30,12 +30,12 @@ function Categories() {
       <h2>Product categories</h2>
       <form
         className="row-gap"
-        onSubmit={(e) => {
-          e.preventDefault();
+        onSubmit={(event) => {
+          event.preventDefault();
           run(() => categoriesApi.create({ name }), 'Category added.').then(() => setName(''));
         }}
       >
-        <input required maxLength={50} placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} aria-label="New category name" style={{ maxWidth: 260 }} />
+        <input required maxLength={50} placeholder="New category name" value={name} onChange={(event) => setName(event.target.value)} aria-label="New category name" style={{ maxWidth: 260 }} />
         <button className="btn btn-sm">Add</button>
       </form>
       {msg.text && <p className={`alert alert-${msg.type}`}>{msg.text}</p>}
@@ -45,13 +45,13 @@ function Categories() {
           {editing?.id === c._id ? (
             <form
               className="row-gap"
-              onSubmit={(e) => {
-                e.preventDefault();
+              onSubmit={(event) => {
+                event.preventDefault();
                 run(() => categoriesApi.update(c._id, { name: editing.name }), 'Category renamed.');
                 setEditing(null);
               }}
             >
-              <input required maxLength={50} value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} aria-label="Category name" />
+              <input required maxLength={50} value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.target.value })} aria-label="Category name" />
               <button className="btn btn-sm">Save</button>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditing(null)}>
                 Cancel
@@ -90,15 +90,15 @@ function Announcements() {
   const [busy, setBusy] = useState(false);
   const { data, loading, error } = useFetch(() => notificationsApi.announcements(), [tick]);
 
-  const publish = async (e) => {
-    e.preventDefault();
+  const publish = async (event) => {
+    event.preventDefault();
     setMsg({ type: '', text: '' });
     setBusy(true);
     try {
       await adminApi.createAnnouncement(f);
       setF({ title: '', message: '', audience: 'all' });
       toast('Announcement published and sent as a notification');
-      setTick((t) => t + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       setMsg({ type: 'error', text: errorMessage(err) });
     } finally {
@@ -112,15 +112,15 @@ function Announcements() {
       <form className="stack" onSubmit={publish}>
         <label>
           Title
-          <input required maxLength={150} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
+          <input required maxLength={150} value={f.title} onChange={(event) => setF({ ...f, title: event.target.value })} />
         </label>
         <label>
           Message
-          <textarea required rows={3} maxLength={2000} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} />
+          <textarea required rows={3} maxLength={2000} value={f.message} onChange={(event) => setF({ ...f, message: event.target.value })} />
         </label>
         <label>
           Send to
-          <select value={f.audience} onChange={(e) => setF({ ...f, audience: e.target.value })}>
+          <select value={f.audience} onChange={(event) => setF({ ...f, audience: event.target.value })}>
             <option value="all">Everyone</option>
             <option value="customers">Customers only</option>
             <option value="farmers">Farmers only</option>
@@ -146,7 +146,7 @@ function Announcements() {
             onClick={async () => {
               if (!(await confirm({ title: 'Delete this announcement?', confirmText: 'Delete', danger: true }))) return;
               await adminApi.removeAnnouncement(a._id).catch(() => {});
-              setTick((t) => t + 1);
+              setTick((previousTick) => previousTick + 1);
             }}
           >
             Delete

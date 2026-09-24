@@ -15,8 +15,8 @@ export default function Login() {
 
   if (user) return <Navigate to={homeFor(user)} replace />;
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setError('');
     setBusy(true);
     try {
@@ -34,11 +34,11 @@ export default function Login() {
       <form onSubmit={submit}>
         <label>
           E-mail
-          <input type="email" required autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input type="email" required autoComplete="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
         </label>
         <label>
           Password
-          <PasswordInput required autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <PasswordInput required autoComplete="current-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
         </label>
         {error && <p className="alert alert-error">{error}</p>}
         <button className="btn btn-block" disabled={busy}>

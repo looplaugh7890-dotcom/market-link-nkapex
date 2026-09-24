@@ -52,18 +52,18 @@ export default function MarketDetail() {
         <p className="muted">No farmers have joined this market yet.</p>
       ) : (
         <div className="grid grid-3">
-          {farmers.map((f) => (
-            <div className="card" key={f._id}>
+          {farmers.map((farmer) => (
+            <div className="card" key={farmer._id}>
               <div className="between">
                 <h3>
-                  <Link to={farmerPath(f)}>{f.farmerProfile.stallName}</Link>
+                  <Link to={farmerPath(farmer)}>{farmer.farmerProfile.stallName}</Link>
                 </h3>
-                <FavoriteButton type="farmers" id={f._id} />
+                <FavoriteButton type="farmers" id={farmer._id} />
               </div>
               <p className="small">
-                <strong>Days:</strong> {daysText(f.farmerProfile.operatingDays)}
+                <strong>Days:</strong> {daysText(farmer.farmerProfile.operatingDays)}
               </p>
-              <Stars value={f.farmerProfile.ratingAvg} count={f.farmerProfile.ratingCount} />
+              <Stars value={farmer.farmerProfile.ratingAvg} count={farmer.farmerProfile.ratingCount} />
             </div>
           ))}
         </div>

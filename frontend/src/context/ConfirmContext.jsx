@@ -17,7 +17,7 @@ export function ConfirmProvider({ children }) {
   useEffect(() => {
     if (!state) return undefined;
     okRef.current?.focus();
-    const onKey = (e) => e.key === 'Escape' && close(false);
+    const onKey = (event) => event.key === 'Escape' && close(false);
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -27,7 +27,7 @@ export function ConfirmProvider({ children }) {
     <ConfirmContext.Provider value={confirm}>
       {children}
       {state && (
-        <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && close(false)}>
+        <div className="modal-back" onMouseDown={(event) => event.target === event.currentTarget && close(false)}>
           <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="cf-title" aria-describedby="cf-msg">
             <h2 id="cf-title">{state.title || 'Are you sure?'}</h2>
             {state.message && <p id="cf-msg" className="muted">{state.message}</p>}

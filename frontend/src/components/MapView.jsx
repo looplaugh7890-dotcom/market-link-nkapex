@@ -14,20 +14,20 @@ L.Icon.Default.mergeOptions({ iconUrl: icon, iconRetinaUrl: icon2x, shadowUrl: s
 function FitBounds({ points }) {
   const map = useMap();
   useEffect(() => {
-    if (points.length > 1) map.fitBounds(points.map((p) => [p.lat, p.lng]), { padding: [30, 30], maxZoom: 15 });
+    if (points.length > 1) map.fitBounds(points.map((point) => [point.lat, point.lng]), { padding: [30, 30], maxZoom: 15 });
     else if (points.length === 1) map.setView([points[0].lat, points[0].lng], 14);
   }, [points, map]);
   return null;
 }
 
 function ClickPicker({ onPick }) {
-  useMapEvents({ click: (e) => onPick(e.latlng.lat, e.latlng.lng) });
+  useMapEvents({ click: (event) => onPick(event.latlng.lat, event.latlng.lng) });
   return null;
 }
 
 // points: [{ id, lat, lng, title, subtitle, link (react node) }]
 export default function MapView({ points, height = 360, onPick }) {
-  const valid = points.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const valid = points.filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
   const center = valid[0] ? [valid[0].lat, valid[0].lng] : [24.8607, 67.0011];
 
   return (

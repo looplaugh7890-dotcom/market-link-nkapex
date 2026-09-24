@@ -56,7 +56,7 @@ export default function Markets() {
       </div>
 
       <div className="toolbar">
-        <input className="pill-input" type="search" placeholder="Search markets by name" aria-label="Search markets" defaultValue={search} onKeyDown={(e) => e.key === 'Enter' && update({ search: e.target.value.trim() })} onBlur={(e) => e.target.value.trim() !== search && update({ search: e.target.value.trim() })} />
+        <input className="pill-input" type="search" placeholder="Search markets by name" aria-label="Search markets" defaultValue={search} onKeyDown={(event) => event.key === 'Enter' && update({ search: event.target.value.trim() })} onBlur={(event) => event.target.value.trim() !== search && update({ search: event.target.value.trim() })} />
         {lat ? (
           <button className="btn btn-outline btn-sm" onClick={() => update({ lat: '', lng: '' })}>
             Clear location
@@ -75,25 +75,25 @@ export default function Markets() {
       {!loading && markets.length > 0 && (
         <div className="markets-split">
           <ul className="market-list">
-            {markets.map((m) => (
-              <li className="market-card" key={m._id}>
+            {markets.map((market) => (
+              <li className="market-card" key={market._id}>
                 <div className="between">
                   <h3>
-                    <Link to={marketPath(m)}>{m.name}</Link>
+                    <Link to={marketPath(market)}>{market.name}</Link>
                   </h3>
-                  <FavoriteButton type="markets" id={m._id} />
+                  <FavoriteButton type="markets" id={market._id} />
                 </div>
-                <p className="muted small">{m.address}</p>
+                <p className="muted small">{market.address}</p>
                 <div className="market-meta">
-                  <span className="chip-static">{daysText(m.operatingDays)}</span>
-                  {m.openTime && (
+                  <span className="chip-static">{daysText(market.operatingDays)}</span>
+                  {market.openTime && (
                     <span className="chip-static">
-                      {m.openTime}–{m.closeTime}
+                      {market.openTime}–{market.closeTime}
                     </span>
                   )}
-                  {nextOpenLabel(m.operatingDays) && <span className="pill-open on">Next: {nextOpenLabel(m.operatingDays)}</span>}
+                  {nextOpenLabel(market.operatingDays) && <span className="pill-open on">Next: {nextOpenLabel(market.operatingDays)}</span>}
                 </div>
-                <Link className="arrow-link" to={marketPath(m)}>
+                <Link className="arrow-link" to={marketPath(market)}>
                   View market & growers →
                 </Link>
               </li>
@@ -102,13 +102,13 @@ export default function Markets() {
           <div className="market-map">
             <MapView
               height={620}
-              points={markets.map((m) => ({
-                id: m._id,
-                lat: m.latitude,
-                lng: m.longitude,
-                title: m.name,
-                subtitle: daysText(m.operatingDays),
-                link: <Link to={marketPath(m)}>View market</Link>,
+              points={markets.map((market) => ({
+                id: market._id,
+                lat: market.latitude,
+                lng: market.longitude,
+                title: market.name,
+                subtitle: daysText(market.operatingDays),
+                link: <Link to={marketPath(market)}>View market</Link>,
               }))}
             />
           </div>

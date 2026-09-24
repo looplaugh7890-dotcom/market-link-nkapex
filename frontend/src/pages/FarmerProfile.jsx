@@ -34,9 +34,9 @@ export default function FarmerProfile() {
           <h3>Pickup windows</h3>
           {fp.pickupWindows.length ? (
             <ul className="plain">
-              {fp.pickupWindows.map((w, i) => (
-                <li key={i}>
-                  {cap(w.day)} {w.start}-{w.end}
+              {fp.pickupWindows.map((pickupWindow, index) => (
+                <li key={index}>
+                  {cap(pickupWindow.day)} {pickupWindow.start}-{pickupWindow.end}
                 </li>
               ))}
             </ul>
@@ -48,9 +48,9 @@ export default function FarmerProfile() {
           <h3>Markets</h3>
           {fp.markets.length ? (
             <ul className="plain">
-              {fp.markets.map((m) => (
-                <li key={m._id}>
-                  <Link to={marketPath(m)}>{m.name}</Link>
+              {fp.markets.map((market) => (
+                <li key={market._id}>
+                  <Link to={marketPath(market)}>{market.name}</Link>
                 </li>
               ))}
             </ul>
@@ -76,8 +76,8 @@ export default function FarmerProfile() {
       <h2 className="section-title">This week&apos;s stock</h2>
       {products.length ? (
         <div className="grid grid-4">
-          {products.map((p) => (
-            <ProductCard key={p._id} product={{ ...p, farmer }} />
+          {products.map((product) => (
+            <ProductCard key={product._id} product={{ ...product, farmer }} />
           ))}
         </div>
       ) : (

@@ -14,11 +14,11 @@ const models = ['User', 'Market', 'Category', 'Product', 'Order', 'Review', 'Not
     await Model.createCollection();
     await Model.syncIndexes();
     const indexes = await Model.collection.indexes();
-    console.log(`- ${Model.collection.name}: ${indexes.map((i) => i.name).join(', ')}`);
+    console.log(`- ${Model.collection.name}: ${indexes.map((index) => index.name).join(', ')}`);
   }
   await mongoose.disconnect();
   console.log('Database is ready.');
-})().catch((e) => {
-  console.error(e);
+})().catch((error) => {
+  console.error(error);
   process.exit(1);
 });

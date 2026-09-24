@@ -9,8 +9,8 @@ function ReviewForm({ orderId, productId, label, onDone }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     if (!rating) return setError('Please choose a star rating');
     setError('');
     setBusy(true);
@@ -28,7 +28,7 @@ function ReviewForm({ orderId, productId, label, onDone }) {
     <form className="review-form" onSubmit={submit}>
       <strong>{label}</strong>
       <StarInput value={rating} onChange={setRating} />
-      <textarea rows={2} maxLength={1000} placeholder="Share your experience (optional)" value={comment} onChange={(e) => setComment(e.target.value)} aria-label={`Comment for ${label}`} />
+      <textarea rows={2} maxLength={1000} placeholder="Share your experience (optional)" value={comment} onChange={(event) => setComment(event.target.value)} aria-label={`Comment for ${label}`} />
       {error && <p className="alert alert-error">{error}</p>}
       <button className="btn btn-sm" disabled={busy}>
         {busy ? 'Submitting...' : 'Submit review'}
@@ -46,27 +46,27 @@ export default function ReviewSection({ order }) {
   const mine = data.reviews;
   const targets = [
     { key: 'farmer', label: `Rate ${order.farmer.farmerProfile.stallName}`, productId: undefined, done: mine.find((r) => r.targetType === 'farmer') },
-    ...order.items.map((i) => ({ key: i.product, label: `Rate ${i.name}`, productId: i.product, done: mine.find((r) => r.product === i.product) })),
+    ...order.items.map((item) => ({ key: item.product, label: `Rate ${item.name}`, productId: item.product, done: mine.find((r) => r.product === item.product) })),
   ];
 
   return (
     <>
       <h2 className="section-title">Rate your order</h2>
       <div className="stack">
-        {targets.map((t) => (
-          <div className="card" key={t.key}>
-            {t.done ? (
+        {targets.map((target) => (
+          <div className="card" key={target.key}>
+            {target.done ? (
               <>
-                <strong>{t.label.replace('Rate ', '')}</strong> <Stars value={t.done.rating} />
-                {t.done.comment && <p className="small">{t.done.comment}</p>}
-                {t.done.reply?.text && (
+                <strong>{target.label.replace('Rate ', '')}</strong> <Stars value={target.done.rating} />
+                {target.done.comment && <p className="small">{target.done.comment}</p>}
+                {target.done.reply?.text && (
                   <p className="reply">
-                    <strong>Farmer reply:</strong> {t.done.reply.text}
+                    <strong>Farmer reply:</strong> {target.done.reply.text}
                   </p>
                 )}
               </>
             ) : (
-              <ReviewForm orderId={order._id} productId={t.productId} label={t.label} onDone={() => setTick(tick + 1)} />
+              <ReviewForm orderId={order._id} productId={target.productId} label={target.label} onDone={() => setTick(tick + 1)} />
             )}
           </div>
         ))}

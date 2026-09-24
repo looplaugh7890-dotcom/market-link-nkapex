@@ -57,9 +57,9 @@ export function About() {
         </div>
       </section>
       <div className="pillars">
-        {pillars.map(([t, d], i) => (
+        {pillars.map(([t, d], index) => (
           <div className="pillar" key={t}>
-            <span className="step-no">0{i + 1}</span>
+            <span className="step-no">0{index + 1}</span>
             <h2>{t}</h2>
             <p className="muted">{d}</p>
           </div>

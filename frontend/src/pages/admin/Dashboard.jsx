@@ -26,13 +26,13 @@ export default function Dashboard() {
 
   // Keep the numbers fresh without a page reload (the server caches for 30s, so this is cheap).
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 60000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setTick((previousTick) => previousTick + 1), 60000);
+    return () => clearInterval(timer);
   }, []);
   const [, force] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => force((n) => n + 1), 15000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => force((n) => n + 1), 15000);
+    return () => clearInterval(timer);
   }, []);
 
   const decide = async (u, status) => {
@@ -41,7 +41,7 @@ export default function Dashboard() {
     try {
       await adminApi.setFarmerStatus(u._id, status);
       toast(`${u.farmerProfile?.stallName} ${status === 'approved' ? 'approved' : 'rejected'}`);
-      setTick((n) => n + 1);
+      setTick((previousTick) => previousTick + 1);
     } catch (err) {
       toast(errorMessage(err));
     } finally {
@@ -55,7 +55,7 @@ export default function Dashboard() {
         <header className="ad-head">
           <h1>{greeting()}</h1>
         </header>
-        {error ? <p className="alert alert-error">{error}</p> : <div className="ad-skeleton">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton" />)}</div>}
+        {error ? <p className="alert alert-error">{error}</p> : <div className="ad-skeleton">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="skeleton" />)}</div>}
       </>
     );
   }
@@ -70,7 +70,7 @@ export default function Dashboard() {
     a.deactivated > 0 && { ico: IconShield, tone: 'muted', text: `${a.deactivated} deactivated account${a.deactivated > 1 ? 's' : ''}`, to: '/admin/users' },
   ].filter(Boolean);
 
-  const days = s.days.map((d) => ({ label: shortDay(d.day), value: d.orders, sub: `${money(d.revenue)} completed · ${d.signups} new customers` }));
+  const days = s.days.map((day) => ({ label: shortDay(day.day), value: day.orders, sub: `${money(day.revenue)} completed · ${day.signups} new customers` }));
   const statusSegs = ['completed', 'ready', 'accepted', 'placed', 'cancelled', 'declined'].map((k) => ({ label: k[0].toUpperCase() + k.slice(1), value: s.byStatus[k] || 0, color: STATUS_COLORS[k] }));
   const completionRate = s.totalOrders ? Math.round(((s.byStatus.completed || 0) / s.totalOrders) * 100) : 0;
 
@@ -83,10 +83,10 @@ export default function Dashboard() {
         </div>
         <div className="ad-tools">
           <span className="muted small">Updated {timeAgo(s.generatedAt)}</span>
-          <button className="btn btn-outline btn-sm" onClick={() => setTick((n) => n + 1)} disabled={loading}>
+          <button className="btn btn-outline btn-sm" onClick={() => setTick((previousTick) => previousTick + 1)} disabled={loading}>
             <IconRefresh width={16} height={16} /> Refresh
           </button>
-          <button className="btn btn-sm" onClick={() => adminApi.exportCsv('orders').catch((e) => toast(errorMessage(e)))}>
+          <button className="btn btn-sm" onClick={() => adminApi.exportCsv('orders').catch((error) => toast(errorMessage(error)))}>
             <IconDownload width={16} height={16} /> Export orders
           </button>
         </div>
@@ -97,22 +97,22 @@ export default function Dashboard() {
           <h2>Needs your attention</h2>
           {a.pendingFarmers.length > 0 && (
             <ul className="approvals">
-              {a.pendingFarmers.map((u) => (
-                <li key={u._id}>
+              {a.pendingFarmers.map((pendingFarmer) => (
+                <li key={pendingFarmer._id}>
                   <span className="ap-avatar" aria-hidden>
-                    {u.farmerProfile?.stallName?.[0]}
+                    {pendingFarmer.farmerProfile?.stallName?.[0]}
                   </span>
                   <span className="ap-info">
-                    <strong>{u.farmerProfile?.stallName}</strong>
+                    <strong>{pendingFarmer.farmerProfile?.stallName}</strong>
                     <small>
-                      {u.name} · {u.email} · applied {timeAgo(u.createdAt)}
+                      {pendingFarmer.name} · {pendingFarmer.email} · applied {timeAgo(pendingFarmer.createdAt)}
                     </small>
                   </span>
                   <span className="ap-actions">
-                    <button className="btn btn-sm" disabled={busy === u._id} onClick={() => decide(u, 'approved')}>
+                    <button className="btn btn-sm" disabled={busy === pendingFarmer._id} onClick={() => decide(pendingFarmer, 'approved')}>
                       <IconCheck width={16} height={16} /> Approve
                     </button>
-                    <button className="btn btn-outline btn-sm" disabled={busy === u._id} onClick={() => decide(u, 'suspended')}>
+                    <button className="btn btn-outline btn-sm" disabled={busy === pendingFarmer._id} onClick={() => decide(pendingFarmer, 'suspended')}>
                       Reject
                     </button>
                   </span>
@@ -131,9 +131,9 @@ export default function Dashboard() {
       )}
 
       <section className="kpis">
-        <Kpi icon={IconChart2} label="Revenue (completed orders)" value={money(s.revenue)} sub={`${money(s.last30.revenue)} in the last 30 days`} change={s.last30.revenueChange} to="/admin/reports" spark={<Sparkline values={s.days.map((d) => d.revenue)} color="var(--orange)" />} />
-        <Kpi icon={IconBox} label="Orders" value={s.totalOrders} sub={`${s.last30.orders} in the last 30 days · ${completionRate}% completed`} change={s.last30.ordersChange} to="/admin/reports" spark={<Sparkline values={s.days.map((d) => d.orders)} />} />
-        <Kpi icon={IconUsers} label="Customers" value={s.totalCustomers} sub={`+${s.days.reduce((n, d) => n + d.signups, 0)} in 14 days`} to="/admin/users?tab=customer" spark={<Sparkline values={s.days.map((d) => d.signups)} color="#5b9bd5" />} />
+        <Kpi icon={IconChart2} label="Revenue (completed orders)" value={money(s.revenue)} sub={`${money(s.last30.revenue)} in the last 30 days`} change={s.last30.revenueChange} to="/admin/reports" spark={<Sparkline values={s.days.map((day) => day.revenue)} color="var(--orange)" />} />
+        <Kpi icon={IconBox} label="Orders" value={s.totalOrders} sub={`${s.last30.orders} in the last 30 days · ${completionRate}% completed`} change={s.last30.ordersChange} to="/admin/reports" spark={<Sparkline values={s.days.map((day) => day.orders)} />} />
+        <Kpi icon={IconUsers} label="Customers" value={s.totalCustomers} sub={`+${s.days.reduce((total, day) => total + day.signups, 0)} in 14 days`} to="/admin/users?tab=customer" spark={<Sparkline values={s.days.map((day) => day.signups)} color="#5b9bd5" />} />
         <Kpi icon={IconShield} label="Farmers" value={s.totalFarmers} sub={s.pendingFarmers ? `${s.pendingFarmers} pending approval` : 'All approved'} to="/admin/users" />
         <Kpi icon={IconMap} label="Markets" value={s.totalMarkets} sub={`${s.totalProducts} products listed`} to="/admin/markets" />
       </section>
@@ -142,7 +142,7 @@ export default function Dashboard() {
         <div className="ad-card">
           <div className="ad-card-head">
             <h2>Orders, last 14 days</h2>
-            <span className="muted small">{s.days.reduce((n, d) => n + d.orders, 0)} orders</span>
+            <span className="muted small">{s.days.reduce((total, day) => total + day.orders, 0)} orders</span>
           </div>
           <BarChart data={days} />
         </div>
@@ -162,24 +162,24 @@ export default function Dashboard() {
               Reports →
             </Link>
           </div>
-          <HBars rows={s.topMarkets.map((m) => ({ label: m.market || 'Unspecified', value: m.revenue, note: `${m.orders} completed orders` }))} format={money} empty="Completed orders will show revenue here." />
+          <HBars rows={s.topMarkets.map((topMarket) => ({ label: topMarket.market || 'Unspecified', value: topMarket.revenue, note: `${topMarket.orders} completed orders` }))} format={money} empty="Completed orders will show revenue here." />
         </div>
         <div className="ad-card">
           <div className="ad-card-head">
             <h2>Recent orders</h2>
           </div>
           <ul className="feed">
-            {s.recent.orders.map((o) => (
-              <li key={o._id}>
+            {s.recent.orders.map((order) => (
+              <li key={order._id}>
                 <span className="feed-main">
-                  <strong>{o.customer?.name || 'Customer'}</strong>
+                  <strong>{order.customer?.name || 'Customer'}</strong>
                   <small>
-                    {o.farmer?.farmerProfile?.stallName} · {timeAgo(o.createdAt)}
+                    {order.farmer?.farmerProfile?.stallName} · {timeAgo(order.createdAt)}
                   </small>
                 </span>
                 <span className="feed-side">
-                  <b>{money(o.totalAmount)}</b>
-                  <StatusTag status={o.status} />
+                  <b>{money(order.totalAmount)}</b>
+                  <StatusTag status={order.status} />
                 </span>
               </li>
             ))}
@@ -194,13 +194,13 @@ export default function Dashboard() {
             </Link>
           </div>
           <ul className="feed">
-            {s.recent.users.map((u) => (
-              <li key={u._id}>
+            {s.recent.users.map((user) => (
+              <li key={user._id}>
                 <span className="feed-main">
-                  <strong>{u.farmerProfile?.stallName || u.name}</strong>
-                  <small>{timeAgo(u.createdAt)}</small>
+                  <strong>{user.farmerProfile?.stallName || user.name}</strong>
+                  <small>{timeAgo(user.createdAt)}</small>
                 </span>
-                <span className={`tag ${u.role === 'farmer' ? 'tag-ready' : 'tag-placed'}`}>{u.role}</span>
+                <span className={`tag ${user.role === 'farmer' ? 'tag-ready' : 'tag-placed'}`}>{user.role}</span>
               </li>
             ))}
           </ul>

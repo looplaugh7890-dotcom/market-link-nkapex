@@ -6,9 +6,9 @@ const FavoritesContext = createContext(null);
 const EMPTY = { farmers: new Set(), products: new Set(), markets: new Set() };
 
 const toSets = (f) => ({
-  farmers: new Set(f.farmers.map((x) => x._id)),
-  products: new Set(f.products.map((x) => x._id)),
-  markets: new Set(f.markets.map((x) => x._id)),
+  farmers: new Set(f.farmers.map((farmer) => farmer._id)),
+  products: new Set(f.products.map((product) => product._id)),
+  markets: new Set(f.markets.map((market) => market._id)),
 });
 
 // Customers' saved farmers / products / markets, shared across pages.
@@ -30,11 +30,11 @@ export function FavoritesProvider({ children }) {
       // Optimistic update, rolled back on failure.
       const next = new Set(favs[type]);
       on ? next.delete(id) : next.add(id);
-      setFavs((f) => ({ ...f, [type]: next }));
+      setFavs((previousFavs) => ({ ...previousFavs, [type]: next }));
       try {
         await (on ? favoritesApi.remove(type, id) : favoritesApi.add(type, id));
       } catch {
-        setFavs((f) => ({ ...f, [type]: favs[type] }));
+        setFavs((previousFavs) => ({ ...previousFavs, [type]: favs[type] }));
       }
     },
     [favs]

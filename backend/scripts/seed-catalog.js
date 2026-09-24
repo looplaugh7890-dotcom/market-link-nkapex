@@ -111,7 +111,7 @@ const FARMERS = [
       farmer = await User.create({
         name: f.name, email: f.email, password: PASSWORD, phone: '0300' + Math.floor(1000000 + Math.random() * 8999999), address: m0.address, role: 'farmer',
         farmerProfile: {
-          stallName: f.stall, contactPerson: f.name, approvalStatus: 'approved', markets: marketDocs.map((m) => m._id), operatingDays: f.days,
+          stallName: f.stall, contactPerson: f.name, approvalStatus: 'approved', markets: marketDocs.map((marketDoc) => marketDoc._id), operatingDays: f.days,
           pickupWindows: f.days.map((day) => ({ day, start: '09:00', end: '13:00' })), cutoffHours: 12,
           location: { address: `Stall at ${m0.name}`, latitude: m0.latitude, longitude: m0.longitude },
           geo: { type: 'Point', coordinates: [m0.longitude, m0.latitude] },
@@ -119,7 +119,7 @@ const FARMERS = [
       });
     } else if (f.email === 'farmer@marketlink.test') {
       // Existing demo farmer: also list them at the new markets' schedule days.
-      await User.updateOne({ _id: farmer._id }, { $set: { 'farmerProfile.markets': marketDocs.map((m) => m._id) } });
+      await User.updateOne({ _id: farmer._id }, { $set: { 'farmerProfile.markets': marketDocs.map((marketDoc) => marketDoc._id) } });
     }
     for (const [c, name, description, price, unit, qty] of f.products) {
       const r = await Product.updateOne({ farmer: farmer._id, name }, { $setOnInsert: { farmer: farmer._id, category: cat[c], name, description, price, unit, quantityAvailable: qty } }, { upsert: true });
@@ -159,4 +159,4 @@ const FARMERS = [
   console.log(`Catalog ready: ${await Market.countDocuments()} markets, ${await User.countDocuments({ role: 'farmer' })} farmers, ${await Category.countDocuments()} categories, ${await Product.countDocuments()} products (${added} new).`);
   console.log(`New farmer logins use password: ${PASSWORD}`);
   await mongoose.disconnect();
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch((error) => { console.error(error); process.exit(1); });

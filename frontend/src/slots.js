@@ -33,7 +33,7 @@ export function computeSlots(farmers, date) {
     intervals = intersect(intervals, windows.length ? windows : [[540, 1020]]);
   }
 
-  const cutoffMs = Math.max(...farmers.map((f) => f.cutoffHours ?? 0)) * 3600 * 1000;
+  const cutoffMs = Math.max(...farmers.map((farmer) => farmer.cutoffHours ?? 0)) * 3600 * 1000;
   const slots = [];
   for (const [s, e] of intervals) {
     for (let t = s; t + 30 <= e; t += 60) {
